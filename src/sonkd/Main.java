@@ -1,4 +1,4 @@
-package test;
+package sonkd;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -154,12 +154,8 @@ public class Main {
 
 						// initial KalmanFilter
 						KF = new Kalman(pt, 0.2, 0.5);
-						pt = KF.getPrediction();
+						KF.getPrediction();
 						pt = KF.correction();
-						// KF.update(pt, true);
-						// Imgproc.rectangle(imag, obj.br(), obj.tl(), new
-						// Scalar(
-						// 255, 255, 0), 2);
 						Imgproc.circle(frame, pt, 2, new Scalar(0, 255, 255), 2);
 					}
 
