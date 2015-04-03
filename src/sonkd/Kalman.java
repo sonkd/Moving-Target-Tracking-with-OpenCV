@@ -1,8 +1,9 @@
 package sonkd;
 
+import java.awt.geom.Point2D;
+
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfFloat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.video.KalmanFilter;
@@ -22,6 +23,42 @@ public class Kalman extends KalmanFilter {
 	public void init() {
 
 	}
+	
+	public Kalman(Point pt){
+		kalman = new KalmanFilter(4, 2, 0, CvType.CV_32F);
+
+		Mat transitionMatrix = new Mat(4, 4, CvType.CV_32F, new Scalar(0));
+		float[] tM = { 
+			    1, 0, 1, 0, 
+			    0, 1, 0, 1,
+			    0, 0, 1, 0,
+			    0, 0, 0, 1 } ;
+		transitionMatrix.put(0,0,tM);
+
+		kalman.set_transitionMatrix(transitionMatrix);
+//		measurement = new Mat(2, 1, CvType.CV_32F, new Scalar(0));
+
+		LastResult = pt;
+		Mat statePre = new Mat(2, 1, CvType.CV_32F, new Scalar(0)); // Toa do (x,y), van toc (0,0)
+		statePre.put(0, 0, pt.x);
+		statePre.put(1, 0, pt.y);
+		kalman.set_statePre(statePre);
+
+		kalman.set_measurementMatrix(Mat.eye(2,4, CvType.CV_32F));
+		
+		Mat processNoiseCov = Mat.eye(4, 4, CvType.CV_32F);
+		processNoiseCov = processNoiseCov.mul(processNoiseCov, 1e-5);
+		kalman.set_processNoiseCov(processNoiseCov);
+
+		Mat id1 = Mat.eye(2,2, CvType.CV_32F);
+		id1 = id1.mul(id1,1e-1);
+		kalman.set_measurementNoiseCov(id1);
+		
+		Mat id2 = Mat.eye(4,4, CvType.CV_32F);
+		//id2 = id2.mul(id2,0.1);
+		kalman.set_errorCovPost(id2);
+		//System.out.println(kalman.get_measurementMatrix().dump());
+	}
 
 	public Kalman(Point pt, double dt, double Accel_noise_mag) {
 		kalman = new KalmanFilter(4, 2, 0, CvType.CV_32F);
@@ -40,35 +77,41 @@ public class Kalman extends KalmanFilter {
 
 		// init
 		LastResult = pt;
-		Mat statePre = new MatOfFloat(4, 1); // Toa do (x,y), van toc (0,0)
+		Mat statePre = new Mat(4, 1, CvType.CV_32F, new Scalar(0)); // Toa do (x,y), van toc (0,0)
 		statePre.put(0, 0, pt.x);
 		statePre.put(1, 0, pt.y);
 		statePre.put(2, 0, 0);
 		statePre.put(3, 0, 0);
 		kalman.set_statePre(statePre);
 
-		Mat statePost = new MatOfFloat(2, 1);
-		statePost.put(0, 0, pt.x);
-		statePost.put(1, 0, pt.y);
-		kalman.set_statePost(statePost);
+//		Mat statePost = new Mat(4, 1, CvType.CV_32F, new Scalar(0));
+//		statePost.put(0, 0, pt.x);
+//		statePost.put(1, 0, pt.y);
+//		statePost.put(1, 0, 0);
+//		statePost.put(1, 0, 0);
+//		kalman.set_statePost(statePost);
 
-		Mat processNoiseCov = new Mat(4, 4, CvType.CV_32F);
-		float[] dTime = { (float) (Math.pow(deltatime, 4.0) / 4.0), 0,
-				(float) (Math.pow(deltatime, 3.0) / 2.0), 0, 0,
-				(float) (Math.pow(deltatime, 4.0) / 4.0), 0,
-				(float) (Math.pow(deltatime, 3.0) / 2.0),
-				(float) (Math.pow(deltatime, 3.0) / 2.0), 0,
-				(float) Math.pow(deltatime, 2.0), 0, 0,
-				(float) (Math.pow(deltatime, 3.0) / 2.0), 0,
-				(float) Math.pow(deltatime, 2.0) };
-		processNoiseCov.put(0, 0, dTime);
+		Mat processNoiseCov = Mat.eye(4, 4, CvType.CV_32F);
+//		float[] dTime = { (float) (Math.pow(deltatime, 4.0) / 4.0), 0,
+//				(float) (Math.pow(deltatime, 3.0) / 2.0), 0, 0,
+//				(float) (Math.pow(deltatime, 4.0) / 4.0), 0,
+//				(float) (Math.pow(deltatime, 3.0) / 2.0),
+//				(float) (Math.pow(deltatime, 3.0) / 2.0), 0,
+//				(float) Math.pow(deltatime, 2.0), 0, 0,
+//				(float) (Math.pow(deltatime, 3.0) / 2.0), 0,
+//				(float) Math.pow(deltatime, 2.0) };
+//		processNoiseCov.put(0, 0, dTime);
 
-		processNoiseCov = processNoiseCov.mul(processNoiseCov, Accel_noise_mag);
+		processNoiseCov = processNoiseCov.mul(processNoiseCov, 1e-5);
 		kalman.set_processNoiseCov(processNoiseCov);
 
-		kalman.set_measurementNoiseCov(new Mat(2, 2, CvType.CV_32F, new Scalar(
-				0.1)));
-		kalman.set_errorCovPost(new Mat(4, 4, CvType.CV_32F, new Scalar(0.1)));
+		Mat id1 = Mat.eye(2,2, CvType.CV_32F);
+		id1 = id1.mul(id1,1e-1);
+		kalman.set_measurementNoiseCov(id1);
+		
+		Mat id2 = Mat.eye(4,4, CvType.CV_32F);
+		//id2 = id2.mul(id2,0.1);
+		kalman.set_errorCovPost(id2);
 	}
 
 	public Point getPrediction() {
@@ -78,7 +121,7 @@ public class Kalman extends KalmanFilter {
 	}
 
 	public Point update(Point p, boolean dataCorrect) {
-		measurement = new MatOfFloat(2, 1, CvType.CV_32F);
+		measurement = new Mat(2, 1, CvType.CV_32F, new Scalar(0)) ; 
 		if (!dataCorrect) {
 			measurement.put(0, 0, LastResult.x);
 			measurement.put(1, 0, LastResult.y);
@@ -93,14 +136,19 @@ public class Kalman extends KalmanFilter {
 		return LastResult;
 	}
 	
-	public Point correction(){
+	// check
+	public Point correction(Point p){
+		measurement = new Mat(2, 1, CvType.CV_32F, new Scalar(0));
+		measurement.put(0, 0, p.x);
+		measurement.put(1, 0, p.y);
+		
 		Mat estimated = kalman.correct(measurement);
 		LastResult.x = estimated.get(0, 0)[0];
 		LastResult.y = estimated.get(1, 0)[0];
 		return LastResult;
 	}
 
-	public void setMeasurement(MatOfFloat measurement) {
+	public void setMeasurement(Mat measurement) {
 		this.measurement = measurement;
 	}
 

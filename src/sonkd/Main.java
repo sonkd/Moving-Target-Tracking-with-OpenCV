@@ -53,8 +53,6 @@ public class Main {
 
 	static Mat imag = null;
 	public static Tracker tracker;
-	public static MovingTracker mTrack;
-	public static Kalman KF;
 
 	public static void main(String[] args) throws InterruptedException {
 		JFrame jFrame = new JFrame("MULTIPLE-TARGET TRACKING");
@@ -82,8 +80,7 @@ public class Main {
 		BackgroundSubtractorMOG2 mBGSub = Video
 				.createBackgroundSubtractorMOG2();
 
-		// tracker = new Tracker((float) 0.2, 0, 60.0, 10, 10);
-		mTrack = new MovingTracker();
+		tracker = new Tracker((float) 0.2, 0, 60.0, 10, 10);
 
 		// VideoCapture camera = new
 		// VideoCapture(VideoCapture.class.getResource(
@@ -91,7 +88,7 @@ public class Main {
 		// Thread.sleep(1000);
 		VideoCapture camera = new VideoCapture();
 		camera.open("atrium.avi");
-		// VideoCapture camera = new VideoCapture(0);
+		//VideoCapture camera = new VideoCapture(0);
 		int i = 0;
 
 		if (!camera.isOpened()) {
@@ -118,15 +115,15 @@ public class Main {
 						Imgproc.THRESH_BINARY);
 				frame = diffFrame.clone();
 				// ----------Process noise-------------//
-				// Imgproc.cvtColor(diffFrame, diffFrame,
-				// Imgproc.COLOR_BGR2GRAY);
-				// Imgproc.GaussianBlur(diffFrame, diffFrame, new Size(3, 3),
-				// 0);
-				//
-				// Imgproc.erode(frame, frame, Imgproc.getStructuringElement(
-				// Imgproc.MORPH_RECT, new Size(8, 8)));
-				// Imgproc.dilate(frame, frame, Imgproc.getStructuringElement(
-				// Imgproc.MORPH_RECT, new Size(8, 8)));
+//				 Imgproc.cvtColor(diffFrame, diffFrame,
+//				 Imgproc.COLOR_BGR2GRAY);
+//				 Imgproc.GaussianBlur(diffFrame, diffFrame, new Size(3, 3),
+//				 0);
+//				
+//				 Imgproc.erode(frame, frame, Imgproc.getStructuringElement(
+//				 Imgproc.MORPH_RECT, new Size(8, 8)));
+//				 Imgproc.dilate(frame, frame, Imgproc.getStructuringElement(
+//				 Imgproc.MORPH_RECT, new Size(8, 8)));
 				// ----------Process noise-------------//
 
 				array = detectionContours(diffFrame);
@@ -138,6 +135,7 @@ public class Main {
 					detections.add(pt);
 				}
 
+				int j = 0;
 				if (array.size() > 0) {
 					Iterator<Rect> it2 = array.iterator();
 					while (it2.hasNext()) {
@@ -150,47 +148,52 @@ public class Main {
 
 						Point pt = new Point(ObjectCenterX, ObjectCenterY);
 						Imgproc.circle(imag, pt, 1, new Scalar(0, 0, 255), 2);
-						// kalman
+						Imgproc.putText(imag, "0" + (j++) + "",
+								new Point(obj.br().x, obj.tl().y),
+								Core.FONT_HERSHEY_PLAIN, 1, Colors[4], 2);
 
 						// initial KalmanFilter
-						KF = new Kalman(pt, 0.2, 0.5);
-						KF.getPrediction();
-						pt = KF.correction();
-						Imgproc.circle(frame, pt, 2, new Scalar(0, 255, 255), 2);
+						// KF = new Kalman(pt);
+						// KF.getPrediction();
+						// pt = KF.correction(pt);
+						// Imgproc.circle(imag, pt, 2, Colors[0], 5);
+						// Imgproc.putText(imag, "predict", new Point(pt.x,
+						// pt.y),Core.FONT_HERSHEY_PLAIN, 1, Colors[4], 1);
+
+					}
+				}
+				
+				if (detections.size() > 0) {
+					// //////////////////////////////////////////////////////////////////
+					tracker.update(detections);
+
+					for (int k = 0; k < tracker.tracks.size(); k++) {
+						int traceNum = tracker.tracks.get(k).trace.size();
+						if (traceNum > 1) {
+							int maxAreaIdx = -1;
+							List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+							for (int jt = 0; jt < tracker.tracks.get(k).trace
+									.size() - 1; jt++) {
+								maxAreaIdx = jt;
+								MatOfPoint MoP = new MatOfPoint(
+										tracker.tracks.get(k).trace.get(jt));
+								contours.add(MoP);
+								Imgproc.drawContours(
+										frame,
+										contours,
+										maxAreaIdx,
+										Colors[tracker.tracks.get(k).track_id % 9]);
+							}
+
+							Imgproc.circle(frame, tracker.tracks.get(k).trace
+									.get(traceNum - 1), 2,
+									Colors[tracker.tracks.get(k).track_id % 9],
+									2, 8, 0);
+
+						}
 					}
 
 					// ///////////////////////////////////////////////////////////////////
-//					tracker.update(detections);
-//
-//					for (int k = 0; k < tracker.tracks.size(); k++) {
-//						int traceNum = tracker.tracks.get(k).trace.size();
-//						if (traceNum > 1) {
-//							int maxAreaIdx = -1;
-//							List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-//							for (int j = 0; j < tracker.tracks.get(k).trace
-//									.size() - 1; j++) {
-//								maxAreaIdx = j;
-//								MatOfPoint MoP = new MatOfPoint(
-//										tracker.tracks.get(k).trace.get(j));
-//								contours.add(MoP);
-//								Imgproc.drawContours(
-//										frame,
-//										contours,
-//										maxAreaIdx,
-//										Colors[tracker.tracks.get(k).track_id % 9]);
-//							}
-//
-//							Imgproc.circle(frame, tracker.tracks.get(k).trace
-//									.get(traceNum - 1), 2,
-//									Colors[tracker.tracks.get(k).track_id % 9],
-//									2, 8, 0);
-//
-//						}
-					
-					
-					
-					// ///////////////////////////////////////////////////////////////////
-
 				}
 			}
 
