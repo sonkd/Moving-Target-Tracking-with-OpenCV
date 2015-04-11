@@ -1,7 +1,5 @@
 package sonkd;
 
-import java.awt.geom.Point2D;
-
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;

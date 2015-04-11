@@ -114,17 +114,6 @@ public class Main {
 				Imgproc.threshold(diffFrame, diffFrame, 127, 255,
 						Imgproc.THRESH_BINARY);
 				frame = diffFrame.clone();
-				// ----------Process noise-------------//
-//				 Imgproc.cvtColor(diffFrame, diffFrame,
-//				 Imgproc.COLOR_BGR2GRAY);
-//				 Imgproc.GaussianBlur(diffFrame, diffFrame, new Size(3, 3),
-//				 0);
-//				
-//				 Imgproc.erode(frame, frame, Imgproc.getStructuringElement(
-//				 Imgproc.MORPH_RECT, new Size(8, 8)));
-//				 Imgproc.dilate(frame, frame, Imgproc.getStructuringElement(
-//				 Imgproc.MORPH_RECT, new Size(8, 8)));
-				// ----------Process noise-------------//
 
 				array = detectionContours(diffFrame);
 				Iterator<Rect> it3 = array.iterator();
@@ -135,7 +124,6 @@ public class Main {
 					detections.add(pt);
 				}
 
-				int j = 0;
 				if (array.size() > 0) {
 					Iterator<Rect> it2 = array.iterator();
 					while (it2.hasNext()) {
@@ -148,9 +136,6 @@ public class Main {
 
 						Point pt = new Point(ObjectCenterX, ObjectCenterY);
 						Imgproc.circle(imag, pt, 1, new Scalar(0, 0, 255), 2);
-						Imgproc.putText(imag, "0" + (j++) + "",
-								new Point(obj.br().x, obj.tl().y),
-								Core.FONT_HERSHEY_PLAIN, 1, Colors[4], 2);
 
 						// initial KalmanFilter
 						// KF = new Kalman(pt);
@@ -166,7 +151,6 @@ public class Main {
 				if (detections.size() > 0) {
 					// //////////////////////////////////////////////////////////////////
 					tracker.update(detections);
-
 					for (int k = 0; k < tracker.tracks.size(); k++) {
 						int traceNum = tracker.tracks.get(k).trace.size();
 						if (traceNum > 1) {
@@ -178,14 +162,13 @@ public class Main {
 								MatOfPoint MoP = new MatOfPoint(
 										tracker.tracks.get(k).trace.get(jt));
 								contours.add(MoP);
-								Imgproc.drawContours(
-										frame,
-										contours,
-										maxAreaIdx,
-										Colors[tracker.tracks.get(k).track_id % 9]);
-							}
-
-							Imgproc.circle(frame, tracker.tracks.get(k).trace
+								Imgproc.drawContours(imag,contours,maxAreaIdx,Colors[6]);
+							}					
+							Imgproc.putText(imag, "0" + k + "",
+									tracker.tracks.get(k).prediction,
+									Core.FONT_HERSHEY_PLAIN, 1, Colors[4], 2);
+							
+							Imgproc.circle(imag, tracker.tracks.get(k).trace
 									.get(traceNum - 1), 2,
 									Colors[tracker.tracks.get(k).track_id % 9],
 									2, 8, 0);
@@ -261,9 +244,7 @@ public class Main {
 				maxAreaIdx = idx;
 				r = Imgproc.boundingRect(contours.get(maxAreaIdx));
 				rect_array.add(r);
-				// Imgproc.drawContours(imag, contours, maxAreaIdx, new
-				// Scalar(0,
-				// 0, 255));
+				 Imgproc.drawContours(imag, contours, maxAreaIdx, Colors[5]);
 			}
 
 		}

@@ -99,6 +99,9 @@ public class Tracker extends JTracker{
 		// -----------------------------------
 		HungarianAlg APS = new HungarianAlg();
 		APS.Solve(Cost,assignment, HungarianAlg.TMethod.optimal);
+		
+//		HungarianAlg2 APS = new HungarianAlg2();
+//		APS.Solve(Cost,assignment);
 
 		// -----------------------------------
 		// clean assignment from pairs with large distance
@@ -180,15 +183,12 @@ public class Tracker extends JTracker{
 			{
 				tracks.get(i).prediction=tracks.get(i).KF.update(new Point(0,0),false);
 			}
-
+			
 			if(tracks.get(i).trace.size()>max_trace_length)
 			{
 				//tracks.get(i).trace.erase(tracks.get(i).trace.begin(),tracks.get(i).trace.end()-max_trace_length);
-				int k = 0;
-				while (k < tracks.get(i).trace.size() - max_trace_length) {
-					tracks.get(i).trace.remove(tracks.get(i).trace.indexOf(k));
-					k++;
-				}
+				for(int j = 0; j<tracks.get(i).trace.size() - max_trace_length; j++)
+						tracks.get(i).trace.remove(j);
 			}
 
 			tracks.get(i).trace.add(tracks.get(i).prediction);

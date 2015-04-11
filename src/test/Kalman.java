@@ -28,7 +28,6 @@ public class Kalman {
 		for(int i = 0; i < samplesArr.length; i++)
 		{
 		    meas.put(0, 0, samplesArr[i]);
-		    Mat corr = kf.correct(meas);
 		    Mat pre = kf.predict();
 		    System.out.println(pre.t().dump());
 		}
