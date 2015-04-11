@@ -2,6 +2,7 @@ package sonkd;
 
 import java.util.Vector;
 
+
 /**
  * AssignmentOptimal.java
  * TODO: 
@@ -11,30 +12,32 @@ import java.util.Vector;
  */
 
 public class AssignmentOptimal {
-	public double Solve(Vector<Vector<Double>> DistMatrix,
+	public double Solve(double[][] DistMatrix,
 			Vector<Integer> Assignment) {
-		int nrow = DistMatrix.size(); // number of columns (tracks)
-		int ncol = DistMatrix.get(0).size(); // number of rows (measurements)
+		int N = DistMatrix.length; // number of columns (tracks)
+		int M = DistMatrix[0].length; // number of rows (measurements)
+		int dim =  Math.max(N, M);
 
 		// Init
-		int[] assignment = new int[nrow];
-		double[][] costMatrix = new double[nrow][ncol];
+		int[] assignment = new int[N];
+		int[] match = new int[dim];
+		double[][] costMatrix = new double[dim][dim];
 
 		// Fill matrix with random numbers
-		for (int i = 0; i < nrow; i++) {
-			for (int j = 0; j < ncol; j++) {
-				costMatrix[i][j] = DistMatrix.get(i).get(j);
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < M; j++) {
+				costMatrix[i][j] = DistMatrix[i][j];
 			}
 		}
 
 		HungarianAlg3 b = new HungarianAlg3(costMatrix);
-		assignment = b.execute();
+		match = b.execute();
+		System.arraycopy(match, 0, assignment, 0, N);
 
 		// form result
-		Assignment.clear();
-		for (int x = 0; x < ncol; x++) {
+		for (int x = 0; x < N; x++) {
 			Assignment.add(assignment[x]);
 		}
-		return b.computeCost(costMatrix, assignment);
+		return b.computeCost(costMatrix, match);
 	}
 }

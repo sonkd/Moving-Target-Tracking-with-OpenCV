@@ -80,7 +80,7 @@ public class Main {
 		BackgroundSubtractorMOG2 mBGSub = Video
 				.createBackgroundSubtractorMOG2();
 
-		tracker = new Tracker((float) 0.2, 0, 60.0, 10, 10);
+		tracker = new Tracker((float) 0.2, (float) 0.5, 60.0, 10, 10);
 
 		// VideoCapture camera = new
 		// VideoCapture(VideoCapture.class.getResource(
@@ -148,7 +148,7 @@ public class Main {
 					}
 				}
 				
-				if (detections.size() > 0) {
+				if (array.size() > 0) {
 					// //////////////////////////////////////////////////////////////////
 					tracker.update(detections);
 					for (int k = 0; k < tracker.tracks.size(); k++) {
@@ -162,18 +162,15 @@ public class Main {
 								MatOfPoint MoP = new MatOfPoint(
 										tracker.tracks.get(k).trace.get(jt));
 								contours.add(MoP);
-								Imgproc.drawContours(imag,contours,maxAreaIdx,Colors[6]);
+								Imgproc.drawContours(imag,contours,maxAreaIdx,Colors[3]);
 							}					
-							Imgproc.putText(imag, "0" + k + "",
-									tracker.tracks.get(k).prediction,
-									Core.FONT_HERSHEY_PLAIN, 1, Colors[4], 2);
-							
-							Imgproc.circle(imag, tracker.tracks.get(k).trace
-									.get(traceNum - 1), 2,
+		
+							Imgproc.circle(imag, tracker.tracks.get(k).trace.get(traceNum-1), 1,
 									Colors[tracker.tracks.get(k).track_id % 9],
 									2, 8, 0);
 
 						}
+
 					}
 
 					// ///////////////////////////////////////////////////////////////////

@@ -10,7 +10,7 @@ import org.opencv.core.Point;
  * @author Kim Dinh Son Email:sonkdbk@gmail.com
  */
 
-public abstract class Track {
+public class Track {
 
 	public Vector<Point> trace;
 	public static int NextTrackID;
@@ -19,4 +19,23 @@ public abstract class Track {
 	public int crossBorder;
 	public Point prediction;
 	public Kalman KF;
+
+	/**
+	 * @param pt
+	 * @param dt = 0.2
+	 * @param Accel_noise_mag = 0.5
+	 */
+	public Track(Point pt, float dt, float Accel_noise_mag) {
+		trace = new Vector<>();
+		// Every track have its own Kalman filter,
+		// it user for next point position prediction.
+		KF = new Kalman(pt);
+		// Here stored points coordinates, used for next position prediction.
+		KF.getPrediction();
+		prediction = KF.correction(pt);
+
+		skipped_frames = 0;
+
+		crossBorder = 0;
+	}
 }

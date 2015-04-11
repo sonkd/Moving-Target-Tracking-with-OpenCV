@@ -11,40 +11,9 @@ import org.opencv.core.Point;
  */
 
 public class Tracker extends JTracker{
-	int nextTrackID = 0;
-
-	/**
-	 * @param pt
-	 * @param dt = 0.2
-	 * @param Accel_noise_mag = 0.5
-	 */
-	public Tracker(Point pt, float dt, float Accel_noise_mag) {
-		super(pt, dt, Accel_noise_mag);
-		// TODO Auto-generated constructor stub
-		track_id = nextTrackID;
-
-		nextTrackID++;
-		
-		trace = new Vector<>();
-
-		KF = new Kalman(pt, dt, Accel_noise_mag);
-
-		prediction = pt;
-
-		skipped_frames = 0;
-
-		crossBorder = 0;
-	}
-
-	public void release() {
-		//
-	}
-	
+	int NextTrackID = 0;
 	public Tracker(float _dt, float _Accel_noise_mag, double _dist_thres,
 			int _maximum_allowed_skipped_frames, int _max_trace_length) {
-		super(_dt, _Accel_noise_mag, _dist_thres,
-				_maximum_allowed_skipped_frames, _max_trace_length);
-		// TODO Auto-generated constructor stub
 		tracks = new Vector<>();
 		dt=_dt;
 		Accel_noise_mag=_Accel_noise_mag;
@@ -60,13 +29,14 @@ public class Tracker extends JTracker{
 	}
 
 	public void update(Vector<Point> detections) {
-		
+
 		if(tracks.size()==0)
 		{
 			// If no tracks yet
 			for(int i=0;i<detections.size();i++)
 			{
-				Tracker tr = new Tracker(detections.elementAt(i),dt,Accel_noise_mag);
+				Track tr = new Track(detections.elementAt(i),dt,Accel_noise_mag);
+				tr.track_id = NextTrackID++;
 				tracks.add(tr);
 			}
 		}
@@ -74,35 +44,36 @@ public class Tracker extends JTracker{
 		// -----------------------------------
 		// Number of tracks and detections
 		// -----------------------------------
-		// int N = tracks.size();
-		// int M = detections.size();
+		int N = tracks.size();
+		int M = detections.size();
 		
 		// Cost matrix.
-		Vector<Vector<Double>> Cost = new Vector<>(); // size: N, M
+		double[][] Cost = new double[N][M]; // size: N, M
 		Vector<Integer> assignment = new Vector<>(); // assignment according to Hungarian algorithm
 
 		// -----------------------------------
 		// Caculate cost matrix (distances)
 		// -----------------------------------
 		for(int i=0;i<tracks.size();i++)
-		{
-			Vector<Double> costRow = new Vector<>();			
+		{		
 			for(int j=0;j<detections.size();j++)
 			{
-				costRow.add(j,euclideanDist(tracks.get(i).prediction, detections.get(j)));
+				Cost[i][j] = euclideanDist(tracks.get(i).prediction, detections.get(j));
 			}
-			Cost.add(i, costRow);
 		}
 		
 		// -----------------------------------
 		// Solving assignment problem (tracks and predictions of Kalman filter)
 		// -----------------------------------
-		HungarianAlg APS = new HungarianAlg();
-		APS.Solve(Cost,assignment, HungarianAlg.TMethod.optimal);
+//		HungarianAlg APS = new HungarianAlg();
+//		APS.Solve(Cost,assignment, HungarianAlg.TMethod.optimal);
 		
 //		HungarianAlg2 APS = new HungarianAlg2();
 //		APS.Solve(Cost,assignment);
-
+		
+		AssignmentOptimal APS = new AssignmentOptimal();
+		APS.Solve(Cost,assignment);
+		
 		// -----------------------------------
 		// clean assignment from pairs with large distance
 		// -----------------------------------
@@ -113,9 +84,9 @@ public class Tracker extends JTracker{
 		{
 			if(assignment.get(i)!=-1)
 			{
-				if(Cost.get(i).get(assignment.get(i))>dist_thres)
+				if(Cost[i][assignment.get(i)]>dist_thres)
 				{
-					assignment.set(i, -1);
+					assignment.set(i,-1);
 					// Mark unassigned tracks, and increment skipped frames counter,
 					// when skipped frames counter will be larger than threshold, track will be deleted.
 					not_assigned_tracks.add(i);
@@ -138,7 +109,7 @@ public class Tracker extends JTracker{
 			{
 				tracks.remove(i);
 				tracks.clear();
-				assignment.clear();
+				assignment.remove(i);
 				i--;
 			}
 		}
@@ -148,8 +119,15 @@ public class Tracker extends JTracker{
 		Vector<Integer> not_assigned_detections = new Vector<>();
 		for(int i=0;i<detections.size();i++)
 		{
-			int it = assignment.indexOf(i);
-			if(it==assignment.lastElement())
+			int it = 0;
+			for(int j = 0; j<assignment.size(); j++){
+				if(assignment.get(j) == i){
+					it = assignment.get(j);
+					break;
+				}
+			}
+			
+			if(it==assignment.get(assignment.size()-1))
 			{
 				not_assigned_detections.add(i);
 			}
@@ -162,7 +140,7 @@ public class Tracker extends JTracker{
 		{
 			for(int i=0;i<not_assigned_detections.size();i++)
 			{
-				Tracker tr=new Tracker(detections.get(not_assigned_detections.get(i)),dt,Accel_noise_mag);
+				Track tr = new Track(detections.get(not_assigned_detections.get(i)),dt,Accel_noise_mag);
 				tracks.add(tr);
 			}
 		}
