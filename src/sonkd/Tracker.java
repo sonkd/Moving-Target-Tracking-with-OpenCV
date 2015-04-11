@@ -11,8 +11,6 @@ import org.opencv.core.Point;
  */
 
 public class Tracker extends JTracker {
-	int NextTrackID = 0;
-
 	public Tracker(float _dt, float _Accel_noise_mag, double _dist_thres,
 			int _maximum_allowed_skipped_frames, int _max_trace_length) {
 		tracks = new Vector<>();
@@ -29,13 +27,12 @@ public class Tracker extends JTracker {
 	}
 
 	public void update(Vector<Point> detections) {
-
+		int nextTractID = 0;
 		if (tracks.size() == 0) {
 			// If no tracks yet
 			for (int i = 0; i < detections.size(); i++) {
 				Track tr = new Track(detections.elementAt(i), dt,
-						Accel_noise_mag);
-				tr.track_id = NextTrackID++;
+						Accel_noise_mag, nextTractID++);
 				tracks.add(tr);
 			}
 		}
@@ -103,7 +100,7 @@ public class Tracker extends JTracker {
 				tracks.remove(i);
 				tracks.clear();
 				assignment.remove(i);
-				//i--;
+				i--;
 			}
 		}
 		// -----------------------------------
@@ -119,7 +116,7 @@ public class Tracker extends JTracker {
 			}
 
 			if (it == assignment.size()) {
-				not_assigned_detections.add(i);
+				not_assigned_detections.add(i); //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 			}
 		}
 
@@ -129,11 +126,11 @@ public class Tracker extends JTracker {
 		if (not_assigned_detections.size() != 0) {
 			for (int i = 0; i < not_assigned_detections.size(); i++) {
 				Track tr = new Track(detections.get(not_assigned_detections
-						.get(i)), dt, Accel_noise_mag);
+						.get(i)), dt, Accel_noise_mag,nextTractID++);
 				tracks.add(tr);
 			}
 		}
-
+		
 		// Update Kalman Filters state
 
 		for (int i = 0; i < assignment.size(); i++) {

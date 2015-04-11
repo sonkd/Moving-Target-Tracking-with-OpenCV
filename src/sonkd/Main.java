@@ -125,6 +125,29 @@ public class Main {
 				}
 
 				if (array.size() > 0) {
+					// //////////////////////////////////////////////////////////////////
+					tracker.update(detections);
+					for (int k = 0; k < tracker.tracks.size(); k++) {
+						int traceNum = tracker.tracks.get(k).trace.size();
+						if (traceNum > 1) {
+							int maxAreaIdx = -1;
+							List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+							for (int jt = 0; jt < tracker.tracks.get(k).trace
+									.size() - 1; jt++) {
+								maxAreaIdx = jt;
+								MatOfPoint MoP = new MatOfPoint(
+										tracker.tracks.get(k).trace.get(jt));
+								contours.add(MoP);
+								Imgproc.drawContours(imag,contours,maxAreaIdx,Colors[tracker.tracks.get(k).track_id % 9],2);
+							}															
+//							Imgproc.circle(imag, tracker.tracks.get(k).trace.get(traceNum-1), 1,
+//									Colors[tracker.tracks.get(k).track_id % 9],
+//									2, 8, 0);
+						}
+
+					}
+					// ///////////////////////////////////////////////////////////////////
+					
 					Iterator<Rect> it2 = array.iterator();
 					while (it2.hasNext()) {
 						Rect obj = it2.next();
@@ -144,29 +167,6 @@ public class Main {
 						// Imgproc.circle(imag, pt, 2, Colors[0], 5);
 						// Imgproc.putText(imag, "predict", new Point(pt.x,
 						// pt.y),Core.FONT_HERSHEY_PLAIN, 1, Colors[4], 1);
-						
-						// //////////////////////////////////////////////////////////////////
-						tracker.update(detections);
-						for (int k = 0; k < tracker.tracks.size(); k++) {
-							int traceNum = tracker.tracks.get(k).trace.size();
-							if (traceNum > 1) {
-								int maxAreaIdx = -1;
-								List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-								for (int jt = 0; jt < tracker.tracks.get(k).trace
-										.size() - 1; jt++) {
-									maxAreaIdx = jt;
-									MatOfPoint MoP = new MatOfPoint(
-											tracker.tracks.get(k).trace.get(jt));
-									contours.add(MoP);
-									Imgproc.drawContours(imag,contours,maxAreaIdx,Colors[tracker.tracks.get(k).track_id % 9]);
-								}															
-								Imgproc.circle(imag, tracker.tracks.get(k).trace.get(traceNum-1), 1,
-										Colors[tracker.tracks.get(k).track_id % 9],
-										2, 8, 0);
-							}
-
-						}
-						// ///////////////////////////////////////////////////////////////////
 
 					}
 				}
