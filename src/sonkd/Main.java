@@ -119,8 +119,8 @@ public class Main {
 				Iterator<Rect> it3 = array.iterator();
 				while (it3.hasNext()) {
 					Rect obj = it3.next();
-					Point pt = new Point(obj.x + obj.width / 2, obj.y
-							- obj.height / 2);
+					Point pt = new Point((obj.tl().x + obj.br().x) / 2,
+							(obj.tl().y + obj.br().y) / 2);
 					detections.add(pt);
 				}
 
@@ -144,36 +144,31 @@ public class Main {
 						// Imgproc.circle(imag, pt, 2, Colors[0], 5);
 						// Imgproc.putText(imag, "predict", new Point(pt.x,
 						// pt.y),Core.FONT_HERSHEY_PLAIN, 1, Colors[4], 1);
-
-					}
-				}
-				
-				if (array.size() > 0) {
-					// //////////////////////////////////////////////////////////////////
-					tracker.update(detections);
-					for (int k = 0; k < tracker.tracks.size(); k++) {
-						int traceNum = tracker.tracks.get(k).trace.size();
-						if (traceNum > 1) {
-							int maxAreaIdx = -1;
-							List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-							for (int jt = 0; jt < tracker.tracks.get(k).trace
-									.size() - 1; jt++) {
-								maxAreaIdx = jt;
-								MatOfPoint MoP = new MatOfPoint(
-										tracker.tracks.get(k).trace.get(jt));
-								contours.add(MoP);
-								Imgproc.drawContours(imag,contours,maxAreaIdx,Colors[3]);
-							}					
-		
-							Imgproc.circle(imag, tracker.tracks.get(k).trace.get(traceNum-1), 1,
-									Colors[tracker.tracks.get(k).track_id % 9],
-									2, 8, 0);
+						
+						// //////////////////////////////////////////////////////////////////
+						tracker.update(detections);
+						for (int k = 0; k < tracker.tracks.size(); k++) {
+							int traceNum = tracker.tracks.get(k).trace.size();
+							if (traceNum > 1) {
+								int maxAreaIdx = -1;
+								List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+								for (int jt = 0; jt < tracker.tracks.get(k).trace
+										.size() - 1; jt++) {
+									maxAreaIdx = jt;
+									MatOfPoint MoP = new MatOfPoint(
+											tracker.tracks.get(k).trace.get(jt));
+									contours.add(MoP);
+									Imgproc.drawContours(imag,contours,maxAreaIdx,Colors[tracker.tracks.get(k).track_id % 9]);
+								}															
+								Imgproc.circle(imag, tracker.tracks.get(k).trace.get(traceNum-1), 1,
+										Colors[tracker.tracks.get(k).track_id % 9],
+										2, 8, 0);
+							}
 
 						}
+						// ///////////////////////////////////////////////////////////////////
 
 					}
-
-					// ///////////////////////////////////////////////////////////////////
 				}
 			}
 
