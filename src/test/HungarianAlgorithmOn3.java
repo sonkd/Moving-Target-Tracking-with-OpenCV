@@ -364,8 +364,8 @@ public class HungarianAlgorithmOn3 {
 	}
 
 	public static void main(String[] args) {
-		double[][] matrix = new double[][] { new double[] { 22.0, 33.5, 59.0 ,102.0}, new double[] { 82.0, 83.5, 69.0 ,92.0},
-				new double[] { 77.0, 37.0, 49.0, 92.0 }, new double[] { 11.0, 69.0, 5.0, 86.0 },new double[] { 8.0, 9.0, 98.0, 23.0 }  };
+		double[][] matrix = new double[][] {new double[] { 22.0, 33.5, 59.0 ,102.0, 88.0, 100.0}, new double[] { 82.0, 83.5, 69.0 ,92.0, 78.0, 40.0},
+				new double[] { 77.0, 37.0, 49.0, 92.0, 48.0, 99.0 }, new double[] { 11.0, 69.0, 5.0, 86.0, 18.0, 30.0 },new double[] { 8.0, 9.0, 98.0, 23.0, 38.0, 104.0 }  };
 		HungarianAlgorithmOn3 b = new HungarianAlgorithmOn3(matrix);
 		int[] match = b.execute();
 		b.printMat(matrix, b.rows, b.cols);

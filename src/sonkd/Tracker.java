@@ -11,6 +11,7 @@ import org.opencv.core.Point;
  */
 
 public class Tracker extends JTracker {
+	int nextTractID = 0;
 	public Tracker(float _dt, float _Accel_noise_mag, double _dist_thres,
 			int _maximum_allowed_skipped_frames, int _max_trace_length) {
 		tracks = new Vector<>();
@@ -27,7 +28,6 @@ public class Tracker extends JTracker {
 	}
 
 	public void update(Vector<Point> detections) {
-		int nextTractID = 0;
 		if (tracks.size() == 0) {
 			// If no tracks yet
 			for (int i = 0; i < detections.size(); i++) {
@@ -96,26 +96,19 @@ public class Tracker extends JTracker {
 		// If track didn't get detects long time, remove it.
 		// -----------------------------------
 		for (int i = 0; i < tracks.size(); i++) {
-			if (tracks.get(i).skipped_frames > maximum_allowed_skipped_frames) {
+			if (tracks.get(i).skipped_frames > maximum_allowed_skipped_frames) {				
 				tracks.remove(i);
-				tracks.clear();
 				assignment.remove(i);
 				i--;
 			}
 		}
+		
 		// -----------------------------------
 		// Search for unassigned detects
 		// -----------------------------------
 		Vector<Integer> not_assigned_detections = new Vector<>();
 		for (int i = 0; i < detections.size(); i++) {
-			int it;
-			for (it = 0; it < assignment.size(); it++) {
-				if (assignment.get(it) == i) {
-					break;
-				}
-			}
-
-			if (it == assignment.size()) {
+			if (!assignment.contains(i)) {
 				not_assigned_detections.add(i); //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 			}
 		}
@@ -123,10 +116,10 @@ public class Tracker extends JTracker {
 		// -----------------------------------
 		// and start new tracks for them.
 		// -----------------------------------
-		if (not_assigned_detections.size() != 0) {
+		if (not_assigned_detections.size() > 0) {
 			for (int i = 0; i < not_assigned_detections.size(); i++) {
 				Track tr = new Track(detections.get(not_assigned_detections
-						.get(i)), dt, Accel_noise_mag,nextTractID++);
+						.get(i)), dt, Accel_noise_mag, nextTractID++);
 				tracks.add(tr);
 			}
 		}

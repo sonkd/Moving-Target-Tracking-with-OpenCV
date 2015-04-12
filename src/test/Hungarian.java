@@ -2,7 +2,7 @@ package test;
 
 import java.util.Vector;
 
-import sonkd.HungarianAlg2;
+import old.HungarianAlg2;
 
 /**
  * Hungarian.java
@@ -17,8 +17,6 @@ public class Hungarian {
 		Reader rd = new Reader("munkres_1.dat");
 		int nrow = rd.getNrow();
 		int ncol = rd.getNCol();
-        double[] RowCover = new double[nrow];
-        double[] ColCover = new double[ncol];
         double[] C = rd.getMatrix();
         
 		Vector<Vector<Double>> Cost = new Vector<>(); // size: N, M
@@ -55,20 +53,6 @@ public class Hungarian {
                 System.out.print(cost.get(r).get(c) + " ");
             }
             System.out.println();
-        }
-    }
-
-    private static void ShowMaskMatrix(int[] M,double[] ColCover, double[] RowCover, int nrow, int ncol)
-    {
-        for (int c = 0; c < ncol; c++)
-        	System.out.print(" " + ColCover[c]);
-        for (int r = 0; r < nrow; r++)
-        {
-        	System.out.print("\n  " + RowCover[r] + "  ");
-            for (int c = 0; c < ncol; c++)
-            {
-            	System.out.print(M[r+nrow*c] + " ");
-            }
         }
     }
 }

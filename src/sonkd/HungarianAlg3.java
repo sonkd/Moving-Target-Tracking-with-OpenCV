@@ -294,17 +294,17 @@ public class HungarianAlg3 {
 		}
 	}
 	
-	protected double computeCost(double[][] matrix, int[] match) {
+	protected double computeCost(double[][] matrix, int[] assignment) {
 		double result = 0;
 		Set<Integer> visited = new HashSet<Integer>();
 		for (int i = 0; i < matrix.length; i++) {
-			if (match[i] == -1) {
+			if (assignment[i] == -1) {
 				continue;
 			}
-			if (!visited.add(match[i])) {
+			if (!visited.add(assignment[i])) {
 				System.out.println("fail");
 			}
-			result += matrix[i][match[i]];
+			result += matrix[i][assignment[i]];
 		}
 		return result;
 	}

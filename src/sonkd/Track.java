@@ -12,7 +12,7 @@ import org.opencv.core.Point;
 
 public class Track {
 
-	public Vector<Point> trace = new Vector<>();
+	public Vector<Point> trace;;
 	public static int NextTrackID;
 	public int track_id;
 	public int skipped_frames;
@@ -26,14 +26,15 @@ public class Track {
 	 * @param Accel_noise_mag = 0.5
 	 */
 	public Track(Point pt, float dt, float Accel_noise_mag, int id) {
-		
+		trace = new Vector<>();
 		track_id=id;
 		// Every track have its own Kalman filter,
 		// it user for next point position prediction.
 		KF = new Kalman(pt);
 		// Here stored points coordinates, used for next position prediction.
-		KF.getPrediction();
-		prediction = KF.correction(pt);
+//		KF.getPrediction();
+//		prediction = KF.correction(pt);
+		prediction = pt;
 
 		skipped_frames = 0;
 

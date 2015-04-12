@@ -80,7 +80,7 @@ public class Main {
 		BackgroundSubtractorMOG2 mBGSub = Video
 				.createBackgroundSubtractorMOG2();
 
-		tracker = new Tracker((float) 0.2, (float) 0.5, 60.0, 10, 10);
+		tracker = new Tracker((float) 0.2, (float) 0.5, 60.0, 10, 30);
 
 		// VideoCapture camera = new
 		// VideoCapture(VideoCapture.class.getResource(
@@ -116,35 +116,42 @@ public class Main {
 				frame = diffFrame.clone();
 
 				array = detectionContours(diffFrame);
-				Iterator<Rect> it3 = array.iterator();
-				while (it3.hasNext()) {
-					Rect obj = it3.next();
-					Point pt = new Point((obj.tl().x + obj.br().x) / 2,
-							(obj.tl().y + obj.br().y) / 2);
-					detections.add(pt);
-				}
-
 				if (array.size() > 0) {
 					// //////////////////////////////////////////////////////////////////
+					detections.clear();
+					Iterator<Rect> it3 = array.iterator();
+					while (it3.hasNext()) {
+						Rect obj = it3.next();
+						Point pt = new Point((obj.tl().x + obj.br().x) / 2,
+								(obj.tl().y + obj.br().y) / 2);
+						detections.add(pt);
+					}
 					tracker.update(detections);
 					for (int k = 0; k < tracker.tracks.size(); k++) {
 						int traceNum = tracker.tracks.get(k).trace.size();
 						if (traceNum > 1) {
-							int maxAreaIdx = -1;
-							List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-							for (int jt = 0; jt < tracker.tracks.get(k).trace
+							for (int jt = 1; jt < tracker.tracks.get(k).trace
 									.size() - 1; jt++) {
-								maxAreaIdx = jt;
-								MatOfPoint MoP = new MatOfPoint(
-										tracker.tracks.get(k).trace.get(jt));
-								contours.add(MoP);
-								Imgproc.drawContours(imag,contours,maxAreaIdx,Colors[tracker.tracks.get(k).track_id % 9],2);
-							}															
-//							Imgproc.circle(imag, tracker.tracks.get(k).trace.get(traceNum-1), 1,
+								Imgproc.line(
+										imag,
+										tracker.tracks.get(k).trace.get(jt - 1),
+										tracker.tracks.get(k).trace.get(jt),
+										Colors[tracker.tracks.get(k).track_id % 9],2,4,0);
+							}
+							
+							Imgproc.putText(
+									imag,
+									tracker.tracks.get(k).track_id + "",
+									new Point(tracker.tracks.get(k).trace
+											.get(traceNum - 1).x,
+											tracker.tracks.get(k).trace
+													.get(traceNum - 1).y),
+									Core.FONT_HERSHEY_PLAIN, 1, Colors[4], 2);
+	
+//							Imgproc.circle(imag, tracker.tracks.get(k).trace.lastElement(), 1,
 //									Colors[tracker.tracks.get(k).track_id % 9],
 //									2, 8, 0);
-						}
-
+						}					
 					}
 					// ///////////////////////////////////////////////////////////////////
 					

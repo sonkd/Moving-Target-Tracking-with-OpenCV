@@ -19,25 +19,19 @@ public class AssignmentOptimal {
 		int dim =  Math.max(N, M);
 
 		// Init
-		int[] assignment = new int[N];
+//		int[] assignment = new int[N];
 		int[] match = new int[dim];
-		double[][] costMatrix = new double[dim][dim];
 
-		// Fill matrix with random numbers
-		for (int i = 0; i < N; i++) {
-			for (int j = 0; j < M; j++) {
-				costMatrix[i][j] = DistMatrix[i][j];
-			}
-		}
-
-		HungarianAlg3 b = new HungarianAlg3(costMatrix);
+		HungarianAlg3 b = new HungarianAlg3(DistMatrix);
 		match = b.execute();
-		System.arraycopy(match, 0, assignment, 0, N);
-
+//		System.arraycopy(match, 0, assignment, 0, N);
+		
 		// form result
+		Assignment.clear();
 		for (int x = 0; x < N; x++) {
-			Assignment.add(assignment[x]);
+			Assignment.add(match[x]);
 		}
-		return b.computeCost(costMatrix, match);
+		
+		return b.computeCost(DistMatrix, match);
 	}
 }
