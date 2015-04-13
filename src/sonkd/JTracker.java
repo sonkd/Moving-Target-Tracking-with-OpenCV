@@ -2,7 +2,8 @@ package sonkd;
 
 import java.util.Vector;
 
-import org.opencv.core.Point;
+import org.opencv.core.Mat;
+import org.opencv.core.Rect;
 
 /**
  * JTracker.java TODO:
@@ -24,6 +25,6 @@ public abstract class JTracker {
 
 	public Vector<Track> tracks;
 
-	public abstract void update(Vector<Point> detections);
+	public abstract void update(Vector<Rect> detections, Mat imag);
 
 }

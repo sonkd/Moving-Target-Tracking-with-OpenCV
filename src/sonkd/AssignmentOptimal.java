@@ -19,12 +19,10 @@ public class AssignmentOptimal {
 		int dim =  Math.max(N, M);
 
 		// Init
-//		int[] assignment = new int[N];
 		int[] match = new int[dim];
 
 		HungarianAlg3 b = new HungarianAlg3(DistMatrix);
 		match = b.execute();
-//		System.arraycopy(match, 0, assignment, 0, N);
 		
 		// form result
 		Assignment.clear();

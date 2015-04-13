@@ -1,8 +1,14 @@
 package sonkd;
 
+import java.util.Iterator;
 import java.util.Vector;
 
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 /**
  * Tracker.java TODO:
@@ -27,12 +33,29 @@ public class Tracker extends JTracker {
 		return Math.sqrt(diff.x * diff.x + diff.y * diff.y);
 	}
 
-	public void update(Vector<Point> detections) {
+	public void update(Vector<Rect> rectArray, Mat imag) {
+		Vector<Point> detections = new Vector<>();
+		detections.clear();
+		Iterator<Rect> it3 = rectArray.iterator();
+		while (it3.hasNext()) {
+			Rect obj = it3.next();
+			
+			int ObjectCenterX = (int) ((obj.tl().x + obj.br().x) / 2);
+			int ObjectCenterY = (int) ((obj.tl().y + obj.br().y) / 2);
+
+			Point pt = new Point(ObjectCenterX, ObjectCenterY);
+			detections.add(pt);
+			
+			Imgproc.rectangle(imag, obj.br(), obj.tl(), new Scalar(
+					0, 255, 0), 2);
+			Imgproc.circle(imag, pt, 1, new Scalar(0, 0, 255), 2);				
+		}
+		
 		if (tracks.size() == 0) {
 			// If no tracks yet
 			for (int i = 0; i < detections.size(); i++) {
-				Track tr = new Track(detections.elementAt(i), dt,
-						Accel_noise_mag, nextTractID++);
+				Track tr = new Track(detections.get(i), dt,
+						Accel_noise_mag, nextTractID++);		
 				tracks.add(tr);
 			}
 		}
@@ -46,7 +69,6 @@ public class Tracker extends JTracker {
 		// Cost matrix.
 		double[][] Cost = new double[N][M]; // size: N, M
 		Vector<Integer> assignment = new Vector<>(); // assignment according to Hungarian algorithm
-
 		// -----------------------------------
 		// Caculate cost matrix (distances)
 		// -----------------------------------
@@ -67,7 +89,6 @@ public class Tracker extends JTracker {
 
 		AssignmentOptimal APS = new AssignmentOptimal();
 		APS.Solve(Cost, assignment);
-
 		// -----------------------------------
 		// clean assignment from pairs with large distance
 		// -----------------------------------
@@ -86,10 +107,9 @@ public class Tracker extends JTracker {
 				}
 			} else {
 				// If track have no assigned detect, then increment skipped
-				// frames counter.
+				// frames counter.			
 				tracks.get(i).skipped_frames++;
 			}
-
 		}
 
 		// -----------------------------------
@@ -109,7 +129,7 @@ public class Tracker extends JTracker {
 		Vector<Integer> not_assigned_detections = new Vector<>();
 		for (int i = 0; i < detections.size(); i++) {
 			if (!assignment.contains(i)) {
-				not_assigned_detections.add(i); //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+				not_assigned_detections.add(i);
 			}
 		}
 
@@ -118,8 +138,8 @@ public class Tracker extends JTracker {
 		// -----------------------------------
 		if (not_assigned_detections.size() > 0) {
 			for (int i = 0; i < not_assigned_detections.size(); i++) {
-				Track tr = new Track(detections.get(not_assigned_detections
-						.get(i)), dt, Accel_noise_mag, nextTractID++);
+				Track tr = new Track(detections.get(not_assigned_detections.get(i)), dt,
+						Accel_noise_mag, nextTractID++);
 				tracks.add(tr);
 			}
 		}
@@ -149,10 +169,22 @@ public class Tracker extends JTracker {
 				for (int j = 0; j < tracks.get(i).trace.size()
 						- max_trace_length; j++)
 					tracks.get(i).trace.remove(j);
-			}
-
+			}		
+			
 			tracks.get(i).trace.add(tracks.get(i).prediction);
 			tracks.get(i).KF.setLastResult(tracks.get(i).prediction);
+		}
+		
+		for (int j = 0; j < assignment.size(); j++) {
+			if (assignment.get(j) != -1) {
+				Point pt2 = new Point(
+						(int) ((rectArray.get(assignment.get(j)).tl().x + rectArray
+								.get(assignment.get(j)).br().x) / 2), rectArray
+								.get(assignment.get(j)).tl().y);
+				Imgproc.putText(imag, tracks.get(j).track_id + "", pt2,
+						2 * Core.FONT_HERSHEY_PLAIN, 1, new Scalar(255, 255,
+								255), 1);
+			}
 		}
 	}
 

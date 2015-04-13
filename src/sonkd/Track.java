@@ -39,5 +39,5 @@ public class Track {
 		skipped_frames = 0;
 
 		crossBorder = 0;
-	}
+	}	
 }

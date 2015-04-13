@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -75,19 +74,19 @@ public class Main {
 		Mat outbox = new Mat();
 		Mat diffFrame = null;
 		Vector<Rect> array = new Vector<Rect>();
-		Vector<Point> detections = new Vector<Point>();
 
 		BackgroundSubtractorMOG2 mBGSub = Video
 				.createBackgroundSubtractorMOG2();
 
-		tracker = new Tracker((float) 0.2, (float) 0.5, 60.0, 10, 30);
+		tracker = new Tracker((float) 0.2, (float) 0.5, 100.0, 20, 20);
 
 		// VideoCapture camera = new
 		// VideoCapture(VideoCapture.class.getResource(
 		// "/atrium.avi").getPath());
 		// Thread.sleep(1000);
 		VideoCapture camera = new VideoCapture();
-		camera.open("atrium.avi");
+		camera.open("H:/VIDEO/Footage/AFL/AFL2/img/img%05d.jpg");
+		//camera.open("atrium.avi");
 		//VideoCapture camera = new VideoCapture(0);
 		int i = 0;
 
@@ -100,8 +99,7 @@ public class Main {
 			if (!camera.read(frame))
 				break;
 			imag = frame.clone();
-			// Imgproc.resize(frame, frame, new Size(FRAME_WIDTH,
-			// FRAME_HEIGHT));
+			//Imgproc.resize(frame, frame, new Size(FRAME_WIDTH, FRAME_HEIGHT));
 			if (i == 0) {
 				jFrame.setSize(frame.width(), frame.height());
 				diffFrame = new Mat(outbox.size(), CvType.CV_8UC1);
@@ -118,64 +116,30 @@ public class Main {
 				array = detectionContours(diffFrame);
 				if (array.size() > 0) {
 					// //////////////////////////////////////////////////////////////////
-					detections.clear();
-					Iterator<Rect> it3 = array.iterator();
-					while (it3.hasNext()) {
-						Rect obj = it3.next();
-						Point pt = new Point((obj.tl().x + obj.br().x) / 2,
-								(obj.tl().y + obj.br().y) / 2);
-						detections.add(pt);
-					}
-					tracker.update(detections);
+//					detections.clear();
+//					Iterator<Rect> it3 = array.iterator();
+//					while (it3.hasNext()) {
+//						Rect obj = it3.next();
+//						Point pt = new Point((obj.tl().x + obj.br().x) / 2,
+//								(obj.tl().y + obj.br().y) / 2);
+//						detections.add(pt);
+//					}
+					tracker.update(array, imag);
 					for (int k = 0; k < tracker.tracks.size(); k++) {
 						int traceNum = tracker.tracks.get(k).trace.size();
 						if (traceNum > 1) {
 							for (int jt = 1; jt < tracker.tracks.get(k).trace
-									.size() - 1; jt++) {
+									.size(); jt++) {
 								Imgproc.line(
 										imag,
 										tracker.tracks.get(k).trace.get(jt - 1),
 										tracker.tracks.get(k).trace.get(jt),
-										Colors[tracker.tracks.get(k).track_id % 9],2,4,0);
+										Colors[tracker.tracks.get(k).track_id % 9],
+										2, 4, 0);
 							}
-							
-							Imgproc.putText(
-									imag,
-									tracker.tracks.get(k).track_id + "",
-									new Point(tracker.tracks.get(k).trace
-											.get(traceNum - 1).x,
-											tracker.tracks.get(k).trace
-													.get(traceNum - 1).y),
-									Core.FONT_HERSHEY_PLAIN, 1, Colors[4], 2);
-	
-//							Imgproc.circle(imag, tracker.tracks.get(k).trace.lastElement(), 1,
-//									Colors[tracker.tracks.get(k).track_id % 9],
-//									2, 8, 0);
-						}					
+						}
 					}
-					// ///////////////////////////////////////////////////////////////////
 					
-					Iterator<Rect> it2 = array.iterator();
-					while (it2.hasNext()) {
-						Rect obj = it2.next();
-						Imgproc.rectangle(imag, obj.br(), obj.tl(), new Scalar(
-								0, 255, 0), 2);
-
-						int ObjectCenterX = (int) ((obj.tl().x + obj.br().x) / 2);
-						int ObjectCenterY = (int) ((obj.tl().y + obj.br().y) / 2);
-
-						Point pt = new Point(ObjectCenterX, ObjectCenterY);
-						Imgproc.circle(imag, pt, 1, new Scalar(0, 0, 255), 2);
-
-						// initial KalmanFilter
-						// KF = new Kalman(pt);
-						// KF.getPrediction();
-						// pt = KF.correction(pt);
-						// Imgproc.circle(imag, pt, 2, Colors[0], 5);
-						// Imgproc.putText(imag, "predict", new Point(pt.x,
-						// pt.y),Core.FONT_HERSHEY_PLAIN, 1, Colors[4], 1);
-
-					}
 				}
 			}
 
@@ -243,7 +207,7 @@ public class Main {
 				maxAreaIdx = idx;
 				r = Imgproc.boundingRect(contours.get(maxAreaIdx));
 				rect_array.add(r);
-				 Imgproc.drawContours(imag, contours, maxAreaIdx, Colors[5]);
+				Imgproc.drawContours(imag, contours, maxAreaIdx, new Scalar(255, 255, 255));
 			}
 
 		}
