@@ -1,5 +1,6 @@
 package sonkd;
 
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -46,9 +47,9 @@ public class Main {
 			new Scalar(255, 127, 255), new Scalar(127, 0, 255),
 			new Scalar(127, 0, 127) };
 
-	final static int FRAME_WIDTH = 400;
-	final static int FRAME_HEIGHT = 300;
-	final static double MIN_BLOB_AREA = 500;
+	final static int FRAME_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().width/2;
+	final static int FRAME_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().height/2;
+	final static double MIN_BLOB_AREA = 300;
 
 	static Mat imag = null;
 	public static Tracker tracker;
@@ -59,6 +60,7 @@ public class Main {
 		JLabel vidpanel = new JLabel();
 		jFrame.setContentPane(vidpanel);
 		jFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+		jFrame.setLocation((3/4)* Toolkit.getDefaultToolkit().getScreenSize().width, (3/4)* Toolkit.getDefaultToolkit().getScreenSize().height);
 		jFrame.setVisible(true);
 
 		// ////////////////////////////////////////////////////////
@@ -66,7 +68,8 @@ public class Main {
 		jFrame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JLabel vidpanel2 = new JLabel();
 		jFrame2.setContentPane(vidpanel2);
-		jFrame2.setSize(640, 480);
+		jFrame2.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+		jFrame2.setLocation(Toolkit.getDefaultToolkit().getScreenSize().width/2, (3/4)* Toolkit.getDefaultToolkit().getScreenSize().height);
 		jFrame2.setVisible(true);
 		// ////////////////////////////////////////////////////////
 
@@ -78,15 +81,13 @@ public class Main {
 		BackgroundSubtractorMOG2 mBGSub = Video
 				.createBackgroundSubtractorMOG2();
 
-		tracker = new Tracker((float) 0.2, (float) 0.5, 100.0, 20, 20);
-
-		// VideoCapture camera = new
-		// VideoCapture(VideoCapture.class.getResource(
-		// "/atrium.avi").getPath());
+		tracker = new Tracker((float) 0.2, (float) 0.5, 100.0, 10, 10);
+		
 		// Thread.sleep(1000);
 		VideoCapture camera = new VideoCapture();
-		camera.open("H:/VIDEO/Footage/AFL/AFL2/img/img%05d.jpg");
-		//camera.open("atrium.avi");
+		// camera.open("H:/VIDEO/Footage/Crowd_PETS09/S2/L2/Time_14-55/View_001/frame_%04d.jpg");
+		camera.open("visiontraffic.avi");
+		// camera.open("H:/VIDEO/Footage/TrackingBugs.mp4");
 		//VideoCapture camera = new VideoCapture(0);
 		int i = 0;
 
@@ -115,15 +116,7 @@ public class Main {
 
 				array = detectionContours(diffFrame);
 				if (array.size() > 0) {
-					// //////////////////////////////////////////////////////////////////
-//					detections.clear();
-//					Iterator<Rect> it3 = array.iterator();
-//					while (it3.hasNext()) {
-//						Rect obj = it3.next();
-//						Point pt = new Point((obj.tl().x + obj.br().x) / 2,
-//								(obj.tl().y + obj.br().y) / 2);
-//						detections.add(pt);
-//					}
+					// //////////////////////////////////////////////////////////////////					
 					tracker.update(array, imag);
 					for (int k = 0; k < tracker.tracks.size(); k++) {
 						int traceNum = tracker.tracks.get(k).trace.size();
@@ -161,7 +154,7 @@ public class Main {
 	protected static void processFrame(VideoCapture capture, Mat mRgba,
 			Mat mFGMask, BackgroundSubtractorMOG2 mBGSub) {
 		// capture.retrieve(mRgba, Imgproc.COLOR_BGR2RGB);
-		// GREY_FRAME also works and exhibits better performance
+		// GREY_FRAME also works and exhibits better performance		
 		mBGSub.apply(mRgba, mFGMask, 0.001);
 		Imgproc.cvtColor(mFGMask, mRgba, Imgproc.COLOR_GRAY2BGRA, 0);
 		Mat openElem = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
