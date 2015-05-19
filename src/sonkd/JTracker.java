@@ -24,6 +24,8 @@ public abstract class JTracker {
 	public int max_trace_length;
 
 	public Vector<Track> tracks;
+	
+	public int track_removed;
 
 	public abstract void update(Vector<Rect> detections, Mat imag);
 

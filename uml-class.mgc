@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ClassDiagram>
-    <Class name="sonkd.Kalman" x="408" y="412">
+    <Class name="sonkd.AssignmentOptimal" x="367" y="192">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Communication destinationClassName="sonkd.HungarianAlg3"/>
+    </Class>
+    <Class name="sonkd.Kalman" x="515" y="372">
         <AttributesDisplayFilter public-accepted="true"
             private-accepted="true" protected-accepted="true"
             default-accepted="true" static-accepted="false"/>
@@ -9,16 +19,7 @@
             default-accepted="false" static-accepted="false"
             accessors-accepted="false" constructors-accepted="false"/>
     </Class>
-    <Class name="sonkd.AssignmentProblemSolver.TMethod" x="369" y="27">
-        <AttributesDisplayFilter public-accepted="true"
-            private-accepted="true" protected-accepted="true"
-            default-accepted="true" static-accepted="false"/>
-        <MethodDisplayFilter public-accepted="true"
-            private-accepted="false" protected-accepted="false"
-            default-accepted="false" static-accepted="false"
-            accessors-accepted="false" constructors-accepted="false"/>
-    </Class>
-    <Class name="sonkd.Track" x="433" y="224">
+    <Class name="sonkd.Track" x="360" y="378">
         <AttributesDisplayFilter public-accepted="true"
             private-accepted="true" protected-accepted="true"
             default-accepted="true" static-accepted="false"/>
@@ -29,7 +30,7 @@
         <Association destinationClassName="sonkd.Kalman"
             endpointName="KF" kind="Simple"/>
     </Class>
-    <Class name="sonkd.AssignmentProblemSolver" x="647" y="283">
+    <Class name="sonkd.HungarianAlg3" x="655" y="123">
         <AttributesDisplayFilter public-accepted="true"
             private-accepted="true" protected-accepted="true"
             default-accepted="true" static-accepted="false"/>
@@ -38,7 +39,7 @@
             default-accepted="false" static-accepted="false"
             accessors-accepted="false" constructors-accepted="false"/>
     </Class>
-    <Class name="sonkd.Tracker" x="161" y="26">
+    <Class name="sonkd.Tracker" x="88" y="194">
         <AttributesDisplayFilter public-accepted="true"
             private-accepted="true" protected-accepted="true"
             default-accepted="true" static-accepted="false"/>
@@ -47,10 +48,10 @@
             default-accepted="false" static-accepted="false"
             accessors-accepted="false" constructors-accepted="false"/>
         <Extension destinationClassName="sonkd.JTracker"/>
+        <Communication destinationClassName="sonkd.AssignmentOptimal"/>
         <Communication destinationClassName="sonkd.Kalman"/>
-        <Communication destinationClassName="sonkd.HungarianAlg"/>
     </Class>
-    <Class name="sonkd.Main" x="34" y="49">
+    <Class name="sonkd.Main" x="162" y="116">
         <AttributesDisplayFilter public-accepted="true"
             private-accepted="true" protected-accepted="true"
             default-accepted="true" static-accepted="false"/>
@@ -62,7 +63,7 @@
             endpointName="tracker" kind="Simple"/>
         <Communication destinationClassName="sonkd.Tracker"/>
     </Class>
-    <Class name="sonkd.HungarianAlg" x="644" y="25">
+    <Class name="sonkd.JTracker" x="80" y="365">
         <AttributesDisplayFilter public-accepted="true"
             private-accepted="true" protected-accepted="true"
             default-accepted="true" static-accepted="false"/>
@@ -70,19 +71,6 @@
             private-accepted="false" protected-accepted="false"
             default-accepted="false" static-accepted="false"
             accessors-accepted="false" constructors-accepted="false"/>
-        <Extension destinationClassName="sonkd.AssignmentProblemSolver"/>
-    </Class>
-    <Class name="sonkd.JTracker" x="137" y="217">
-        <AttributesDisplayFilter public-accepted="true"
-            private-accepted="true" protected-accepted="true"
-            default-accepted="true" static-accepted="false"/>
-        <MethodDisplayFilter public-accepted="true"
-            private-accepted="false" protected-accepted="false"
-            default-accepted="false" static-accepted="false"
-            accessors-accepted="false" constructors-accepted="false"/>
-        <Extension destinationClassName="sonkd.Track">
-            <Point x="379" y="255"/>
-        </Extension>
         <Association destinationClassName="sonkd.Track"
             endpointName="tracks" kind="Simple"/>
     </Class>

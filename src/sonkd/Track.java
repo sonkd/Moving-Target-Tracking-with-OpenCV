@@ -12,7 +12,7 @@ import org.opencv.core.Point;
 
 public class Track {
 
-	public Vector<Point> trace;;
+	public Vector<Point> trace;
 	public static int NextTrackID;
 	public int track_id;
 	public int skipped_frames;

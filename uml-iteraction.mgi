@@ -1,28 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ClassDiagram>
-    <CommunicationClass name="sonkd.Kalman" x="371" y="328"/>
-    <CommunicationClass name="sonkd.AssignmentProblemSolver.TMethod"
-        x="211" y="228"/>
-    <CommunicationClass name="sonkd.Track" x="214" y="290">
+    <CommunicationClass name="sonkd.AssignmentOptimal" x="499" y="299">
+        <Communication destinationClassName="sonkd.HungarianAlg3"/>
+    </CommunicationClass>
+    <CommunicationClass name="sonkd.Kalman" x="300" y="300"/>
+    <CommunicationClass name="sonkd.Track" x="902" y="182">
         <Association destinationClassName="sonkd.Kalman"
             endpointName="KF" kind="Simple"/>
     </CommunicationClass>
-    <CommunicationClass name="sonkd.AssignmentProblemSolver" x="167" y="101"/>
-    <CommunicationClass name="sonkd.Tracker" x="565" y="325">
+    <CommunicationClass name="sonkd.HungarianAlg3" x="511" y="429"/>
+    <CommunicationClass name="sonkd.Tracker" x="413" y="173">
         <Extension destinationClassName="sonkd.JTracker"/>
+        <Communication destinationClassName="sonkd.AssignmentOptimal">
+            <Point x="507" y="256"/>
+        </Communication>
         <Communication destinationClassName="sonkd.Kalman"/>
-        <Communication destinationClassName="sonkd.HungarianAlg"/>
     </CommunicationClass>
-    <CommunicationClass name="sonkd.Main" x="372" y="161">
+    <CommunicationClass name="sonkd.Main" x="419" y="66">
         <Association destinationClassName="sonkd.Tracker"
             endpointName="tracker" kind="Simple"/>
         <Communication destinationClassName="sonkd.Tracker"/>
     </CommunicationClass>
-    <CommunicationClass name="sonkd.HungarianAlg" x="543" y="146">
-        <Extension destinationClassName="sonkd.AssignmentProblemSolver"/>
-    </CommunicationClass>
-    <CommunicationClass name="sonkd.JTracker" x="444" y="91">
-        <Extension destinationClassName="sonkd.Track"/>
+    <CommunicationClass name="sonkd.JTracker" x="796" y="180">
         <Association destinationClassName="sonkd.Track"
             endpointName="tracks" kind="Simple"/>
     </CommunicationClass>

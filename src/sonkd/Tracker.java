@@ -26,6 +26,7 @@ public class Tracker extends JTracker {
 		dist_thres = _dist_thres;
 		maximum_allowed_skipped_frames = _maximum_allowed_skipped_frames;
 		max_trace_length = _max_trace_length;
+		track_removed = 0;
 	}
 
 	double euclideanDist(Point p, Point q) {
@@ -107,7 +108,7 @@ public class Tracker extends JTracker {
 				}
 			} else {
 				// If track have no assigned detect, then increment skipped
-				// frames counter.			
+				// frames counter.	
 				tracks.get(i).skipped_frames++;
 			}
 		}
@@ -115,10 +116,20 @@ public class Tracker extends JTracker {
 		// -----------------------------------
 		// If track didn't get detects long time, remove it.
 		// -----------------------------------
+		
 		for (int i = 0; i < tracks.size(); i++) {
+			if (tracks.get(i).skipped_frames > (maximum_allowed_skipped_frames - 5)
+					&& tracks.get(i).skipped_frames <= maximum_allowed_skipped_frames) {
+				Point pt2 = tracks.get(i).trace.lastElement();
+				Imgproc.putText(imag, "[ deleting... ]", pt2,
+						(3/2)*Core.FONT_HERSHEY_PLAIN, 1, new Scalar(0, 0,
+								255), 1);
+			}
+			
 			if (tracks.get(i).skipped_frames > maximum_allowed_skipped_frames) {				
 				tracks.remove(i);
 				assignment.remove(i);
+				track_removed++;
 				i--;
 			}
 		}
