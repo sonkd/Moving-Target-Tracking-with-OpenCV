@@ -118,7 +118,7 @@ public class Tracker extends JTracker {
 		// -----------------------------------
 		
 		for (int i = 0; i < tracks.size(); i++) {
-			if (tracks.get(i).skipped_frames > (maximum_allowed_skipped_frames - 5)
+			if (tracks.get(i).skipped_frames > (maximum_allowed_skipped_frames/2)
 					&& tracks.get(i).skipped_frames <= maximum_allowed_skipped_frames) {
 				Point pt2 = tracks.get(i).trace.lastElement();
 				Imgproc.putText(imag, "[ deleting... ]", pt2,
@@ -160,7 +160,6 @@ public class Tracker extends JTracker {
 		for (int i = 0; i < assignment.size(); i++) {
 			// If track updated less than one time, than filter state is not
 			// correct.
-
 			tracks.get(i).KF.getPrediction();
 
 			if (assignment.get(i) != -1) // If we have assigned detect, then
@@ -182,19 +181,26 @@ public class Tracker extends JTracker {
 					tracks.get(i).trace.remove(j);
 			}		
 			
-			tracks.get(i).trace.add(tracks.get(i).prediction);
+			tracks.get(i).trace.add(tracks.get(i).prediction);			
 			tracks.get(i).KF.setLastResult(tracks.get(i).prediction);
 		}
 		
 		for (int j = 0; j < assignment.size(); j++) {
 			if (assignment.get(j) != -1) {
+				Point pt1 = new Point(
+						(int) ((rectArray.get(assignment.get(j)).tl().x + rectArray
+								.get(assignment.get(j)).br().x) / 2),
+						(rectArray.get(assignment.get(j)).tl().y + rectArray
+								.get(assignment.get(j)).br().y) / 2);
 				Point pt2 = new Point(
 						(int) ((rectArray.get(assignment.get(j)).tl().x + rectArray
 								.get(assignment.get(j)).br().x) / 2), rectArray
 								.get(assignment.get(j)).tl().y);
+				
 				Imgproc.putText(imag, tracks.get(j).track_id + "", pt2,
 						2 * Core.FONT_HERSHEY_PLAIN, 1, new Scalar(255, 255,
 								255), 1);
+				tracks.get(j).history.add(pt1);
 			}
 		}
 	}

@@ -45,7 +45,7 @@ public class Kalman extends KalmanFilter {
 		kalman.set_measurementMatrix(Mat.eye(2,4, CvType.CV_32F));
 		
 		Mat processNoiseCov = Mat.eye(4, 4, CvType.CV_32F);
-		processNoiseCov = processNoiseCov.mul(processNoiseCov, 1e-5);
+		processNoiseCov = processNoiseCov.mul(processNoiseCov, 1e-4);
 		kalman.set_processNoiseCov(processNoiseCov);
 
 		Mat id1 = Mat.eye(2,2, CvType.CV_32F);
@@ -55,7 +55,6 @@ public class Kalman extends KalmanFilter {
 		Mat id2 = Mat.eye(4,4, CvType.CV_32F);
 		//id2 = id2.mul(id2,0.1);
 		kalman.set_errorCovPost(id2);
-		//System.out.println(kalman.get_measurementMatrix().dump());
 	}
 
 	public Kalman(Point pt, double dt, double Accel_noise_mag) {
@@ -82,25 +81,24 @@ public class Kalman extends KalmanFilter {
 		statePre.put(3, 0, 0);
 		kalman.set_statePre(statePre);
 
-//		Mat statePost = new Mat(4, 1, CvType.CV_32F, new Scalar(0));
-//		statePost.put(0, 0, pt.x);
-//		statePost.put(1, 0, pt.y);
-//		statePost.put(1, 0, 0);
-//		statePost.put(1, 0, 0);
-//		kalman.set_statePost(statePost);
+		Mat statePost = new Mat(2, 1, CvType.CV_32F, new Scalar(0));
+		statePost.put(0, 0, pt.x);
+		statePost.put(1, 0, pt.y);
+		kalman.set_statePost(statePost);
 
-		Mat processNoiseCov = Mat.eye(4, 4, CvType.CV_32F);
-//		float[] dTime = { (float) (Math.pow(deltatime, 4.0) / 4.0), 0,
-//				(float) (Math.pow(deltatime, 3.0) / 2.0), 0, 0,
-//				(float) (Math.pow(deltatime, 4.0) / 4.0), 0,
-//				(float) (Math.pow(deltatime, 3.0) / 2.0),
-//				(float) (Math.pow(deltatime, 3.0) / 2.0), 0,
-//				(float) Math.pow(deltatime, 2.0), 0, 0,
-//				(float) (Math.pow(deltatime, 3.0) / 2.0), 0,
-//				(float) Math.pow(deltatime, 2.0) };
-//		processNoiseCov.put(0, 0, dTime);
+		//Mat processNoiseCov = Mat.eye(4, 4, CvType.CV_32F);
+		Mat processNoiseCov = new Mat(4, 1, CvType.CV_32F, new Scalar(0));
+		float[] dTime = { (float) (Math.pow(deltatime, 4.0) / 4.0), 0,
+				(float) (Math.pow(deltatime, 3.0) / 2.0), 0, 0,
+				(float) (Math.pow(deltatime, 4.0) / 4.0), 0,
+				(float) (Math.pow(deltatime, 3.0) / 2.0),
+				(float) (Math.pow(deltatime, 3.0) / 2.0), 0,
+				(float) Math.pow(deltatime, 2.0), 0, 0,
+				(float) (Math.pow(deltatime, 3.0) / 2.0), 0,
+				(float) Math.pow(deltatime, 2.0) };
+		processNoiseCov.put(0, 0, dTime);
 
-		processNoiseCov = processNoiseCov.mul(processNoiseCov, 1e-5);
+		processNoiseCov = processNoiseCov.mul(processNoiseCov, Accel_noise_mag); // Accel_noise_mag = 1e-5
 		kalman.set_processNoiseCov(processNoiseCov);
 
 		Mat id1 = Mat.eye(2,2, CvType.CV_32F);
@@ -108,7 +106,7 @@ public class Kalman extends KalmanFilter {
 		kalman.set_measurementNoiseCov(id1);
 		
 		Mat id2 = Mat.eye(4,4, CvType.CV_32F);
-		//id2 = id2.mul(id2,0.1);
+		id2 = id2.mul(id2,.1);
 		kalman.set_errorCovPost(id2);
 	}
 
