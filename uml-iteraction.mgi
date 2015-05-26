@@ -4,11 +4,16 @@
         <Communication destinationClassName="sonkd.HungarianAlg3"/>
     </CommunicationClass>
     <CommunicationClass name="sonkd.Kalman" x="300" y="300"/>
-    <CommunicationClass name="sonkd.Track" x="902" y="182">
+    <CommunicationClass name="sonkd.Track" x="781" y="76">
         <Association destinationClassName="sonkd.Kalman"
             endpointName="KF" kind="Simple"/>
     </CommunicationClass>
     <CommunicationClass name="sonkd.HungarianAlg3" x="511" y="429"/>
+    <CommunicationClass name="sonkd.Main" x="419" y="66">
+        <Association destinationClassName="sonkd.Tracker"
+            endpointName="tracker" kind="Simple"/>
+        <Communication destinationClassName="sonkd.Tracker"/>
+    </CommunicationClass>
     <CommunicationClass name="sonkd.Tracker" x="413" y="173">
         <Extension destinationClassName="sonkd.JTracker"/>
         <Communication destinationClassName="sonkd.AssignmentOptimal">
@@ -16,12 +21,7 @@
         </Communication>
         <Communication destinationClassName="sonkd.Kalman"/>
     </CommunicationClass>
-    <CommunicationClass name="sonkd.Main" x="419" y="66">
-        <Association destinationClassName="sonkd.Tracker"
-            endpointName="tracker" kind="Simple"/>
-        <Communication destinationClassName="sonkd.Tracker"/>
-    </CommunicationClass>
-    <CommunicationClass name="sonkd.JTracker" x="796" y="180">
+    <CommunicationClass name="sonkd.JTracker" x="640" y="73">
         <Association destinationClassName="sonkd.Track"
             endpointName="tracks" kind="Simple"/>
     </CommunicationClass>

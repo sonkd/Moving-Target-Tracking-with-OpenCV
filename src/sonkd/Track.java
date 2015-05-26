@@ -32,10 +32,9 @@ public class Track {
 		track_id=id;
 		// Every track have its own Kalman filter,
 		// it user for next point position prediction.
-		KF = new Kalman(pt);
+		// KF = new Kalman(pt);
+		KF = new Kalman(pt,dt,Accel_noise_mag);
 		// Here stored points coordinates, used for next position prediction.
-//		KF.getPrediction();
-//		prediction = KF.correction(pt);
 		prediction = pt;
 
 		skipped_frames = 0;

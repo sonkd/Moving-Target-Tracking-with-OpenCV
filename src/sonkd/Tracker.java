@@ -18,6 +18,7 @@ import org.opencv.imgproc.Imgproc;
 
 public class Tracker extends JTracker {
 	int nextTractID = 0;
+
 	public Tracker(float _dt, float _Accel_noise_mag, double _dist_thres,
 			int _maximum_allowed_skipped_frames, int _max_trace_length) {
 		tracks = new Vector<>();
@@ -28,15 +29,21 @@ public class Tracker extends JTracker {
 		max_trace_length = _max_trace_length;
 		track_removed = 0;
 	}
+	
+	static Scalar Colors[] = { new Scalar(255, 0, 0), new Scalar(0, 255, 0),
+		new Scalar(0, 0, 255), new Scalar(255, 255, 0),
+		new Scalar(0, 255, 255), new Scalar(255, 0, 255),
+		new Scalar(255, 127, 255), new Scalar(127, 0, 255),
+		new Scalar(127, 0, 127) };
 
 	double euclideanDist(Point p, Point q) {
 		Point diff = new Point(p.x - q.x, p.y - q.y);
 		return Math.sqrt(diff.x * diff.x + diff.y * diff.y);
 	}
 
-	public void update(Vector<Rect> rectArray, Mat imag) {
+	public void update(Vector<Rect> rectArray, Mat imag) {	
 		Vector<Point> detections = new Vector<>();
-		detections.clear();
+		//detections.clear();
 		Iterator<Rect> it3 = rectArray.iterator();
 		while (it3.hasNext()) {
 			Rect obj = it3.next();
@@ -45,11 +52,7 @@ public class Tracker extends JTracker {
 			int ObjectCenterY = (int) ((obj.tl().y + obj.br().y) / 2);
 
 			Point pt = new Point(ObjectCenterX, ObjectCenterY);
-			detections.add(pt);
-			
-			Imgproc.rectangle(imag, obj.br(), obj.tl(), new Scalar(
-					0, 255, 0), 2);
-			Imgproc.circle(imag, pt, 1, new Scalar(0, 0, 255), 2);				
+			detections.add(pt);					
 		}
 		
 		if (tracks.size() == 0) {
@@ -108,24 +111,16 @@ public class Tracker extends JTracker {
 				}
 			} else {
 				// If track have no assigned detect, then increment skipped
-				// frames counter.	
+				// frames counter.
 				tracks.get(i).skipped_frames++;
 			}
 		}
-
+		
 		// -----------------------------------
 		// If track didn't get detects long time, remove it.
 		// -----------------------------------
 		
 		for (int i = 0; i < tracks.size(); i++) {
-			if (tracks.get(i).skipped_frames > (maximum_allowed_skipped_frames/2)
-					&& tracks.get(i).skipped_frames <= maximum_allowed_skipped_frames) {
-				Point pt2 = tracks.get(i).trace.lastElement();
-				Imgproc.putText(imag, "[ deleting... ]", pt2,
-						(3/2)*Core.FONT_HERSHEY_PLAIN, 1, new Scalar(0, 0,
-								255), 1);
-			}
-			
 			if (tracks.get(i).skipped_frames > maximum_allowed_skipped_frames) {				
 				tracks.remove(i);
 				assignment.remove(i);
@@ -156,7 +151,34 @@ public class Tracker extends JTracker {
 		}
 		
 		// Update Kalman Filters state
+		updateKalman(imag, assignment, detections);
+				
+		for (int j = 0; j < assignment.size(); j++) {
+			if (assignment.get(j) != -1) {
+				Point pt1 = new Point(
+						(int) ((rectArray.get(assignment.get(j)).tl().x + rectArray
+								.get(assignment.get(j)).br().x) / 2), rectArray
+								.get(assignment.get(j)).br().y);
+				Point pt2 = new Point(
+						(int) ((rectArray.get(assignment.get(j)).tl().x + rectArray
+								.get(assignment.get(j)).br().x) / 2), rectArray
+								.get(assignment.get(j)).tl().y);
 
+				Imgproc.putText(imag, tracks.get(j).track_id + "", pt2,
+						2 * Core.FONT_HERSHEY_PLAIN, 1, new Scalar(255, 255,
+								255), 1);
+				if (tracks.get(j).history.size() < 20)
+					tracks.get(j).history.add(pt1);
+				else {
+					tracks.get(j).history.remove(0);
+					tracks.get(j).history.add(pt1);
+				}
+			}
+		}
+	}
+	
+	public void updateKalman(Mat imag, Vector<Integer> assignment, Vector<Point> detections) {
+		// Update Kalman Filters state
 		for (int i = 0; i < assignment.size(); i++) {
 			// If track updated less than one time, than filter state is not
 			// correct.
@@ -175,34 +197,31 @@ public class Tracker extends JTracker {
 			}
 
 			if (tracks.get(i).trace.size() > max_trace_length) {
-				// tracks.get(i).trace.erase(tracks.get(i).trace.begin(),tracks.get(i).trace.end()-max_trace_length);
 				for (int j = 0; j < tracks.get(i).trace.size()
 						- max_trace_length; j++)
 					tracks.get(i).trace.remove(j);
-			}		
-			
-			tracks.get(i).trace.add(tracks.get(i).prediction);			
-			tracks.get(i).KF.setLastResult(tracks.get(i).prediction);
-		}
-		
-		for (int j = 0; j < assignment.size(); j++) {
-			if (assignment.get(j) != -1) {
-				Point pt1 = new Point(
-						(int) ((rectArray.get(assignment.get(j)).tl().x + rectArray
-								.get(assignment.get(j)).br().x) / 2),
-						(rectArray.get(assignment.get(j)).tl().y + rectArray
-								.get(assignment.get(j)).br().y) / 2);
-				Point pt2 = new Point(
-						(int) ((rectArray.get(assignment.get(j)).tl().x + rectArray
-								.get(assignment.get(j)).br().x) / 2), rectArray
-								.get(assignment.get(j)).tl().y);
-				
-				Imgproc.putText(imag, tracks.get(j).track_id + "", pt2,
-						2 * Core.FONT_HERSHEY_PLAIN, 1, new Scalar(255, 255,
-								255), 1);
-				tracks.get(j).history.add(pt1);
 			}
+
+			tracks.get(i).trace.add(tracks.get(i).prediction);
+			tracks.get(i).KF.setLastResult(tracks.get(i).prediction);
+			// Imgproc.putText(imag, "K",tracks.get(i).prediction,
+			// Core.FONT_HERSHEY_PLAIN, 2, new Scalar(255, 255, 255), 1);
 		}
+	}
+	
+	public void predictKalman(Mat imag, Vector<Rect> detections){
+		if (detections.size() == 0)
+			for (int i = 0; i < tracks.size(); i++) {
+				tracks.get(i).prediction = tracks.get(i).KF.update(
+						tracks.get(i).trace.lastElement(), true);
+				System.out.println("predicted: "+ tracks.get(i).prediction.x+" "+tracks.get(i).prediction.y);
+				
+				tracks.get(i).trace.add(tracks.get(i).prediction);
+
+				tracks.get(i).KF.setLastResult(tracks.get(i).prediction);
+				Imgproc.circle(imag, tracks.get(i).prediction, 5, new Scalar(0,
+						0, 255), 2);
+			}
 	}
 
 }

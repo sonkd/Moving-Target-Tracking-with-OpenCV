@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -51,8 +52,10 @@ public class Main {
 	final static int FRAME_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().height / 2;
 	final static double MIN_BLOB_AREA = 500;
 
-	static String filename = "H:/VIDEO/Footage/Project Final/MatchSoccer.wmv";
-	// static String filename = "atrium.avi";
+	//static String filename = "H:/VIDEO/Footage/Crowd_PETS09/S2/L2/Time_14-55/View_001/frame_%04d.jpg");
+	static String filename = "H:/VIDEO/Footage/Project Final/cat-moving.mp4";
+	//static String filename = "atrium.avi";
+	
 	static Mat imag = null;
 	static Mat orgin = null;
 	static Mat kalman = null;
@@ -90,7 +93,7 @@ public class Main {
 		jFrame3.setLocation((3 / 4)
 				* Toolkit.getDefaultToolkit().getScreenSize().width, Toolkit
 				.getDefaultToolkit().getScreenSize().height / 2);
-		jFrame3.setVisible(true);
+		jFrame3.setVisible(false);
 		// ////////////////////////////////////////////////////////
 
 		// ////////////////////////////////////////////////////////
@@ -102,7 +105,7 @@ public class Main {
 		jFrame4.setLocation(
 				Toolkit.getDefaultToolkit().getScreenSize().width / 2, Toolkit
 						.getDefaultToolkit().getScreenSize().height / 2);
-		jFrame4.setVisible(true);
+		jFrame4.setVisible(false);
 		// ////////////////////////////////////////////////////////
 
 		Mat frame = new Mat();
@@ -113,11 +116,10 @@ public class Main {
 		BackgroundSubtractorMOG2 mBGSub = Video
 				.createBackgroundSubtractorMOG2();
 
-		tracker = new Tracker((float) 0.2, (float) 0.5, 600.0, 20, 30);
+		tracker = new Tracker((float) 0.2, (float) 0.5, 160.0, 10, 10);
 
 		// Thread.sleep(1000);
 		VideoCapture camera = new VideoCapture();
-		// camera.open("H:/VIDEO/Footage/Crowd_PETS09/S2/L2/Time_14-55/View_001/frame_%04d.jpg");
 		camera.open(filename);
 		// VideoCapture camera = new VideoCapture(0);
 		int i = 0;
@@ -133,7 +135,7 @@ public class Main {
 			Imgproc.resize(frame, frame, new Size(FRAME_WIDTH, FRAME_HEIGHT),
 					0., 0., Imgproc.INTER_LINEAR);
 			imag = frame.clone();
-			orgin = imag.clone();
+			orgin = frame.clone();
 			kalman = frame.clone();
 			if (i == 0) {
 				// jFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
@@ -144,53 +146,41 @@ public class Main {
 			if (i == 1) {
 				diffFrame = new Mat(frame.size(), CvType.CV_8UC1);
 				processFrame(camera, frame, diffFrame, mBGSub);
-				Imgproc.threshold(diffFrame, diffFrame, 127, 255,
-						Imgproc.THRESH_BINARY);
 				frame = diffFrame.clone();
 
 				array = detectionContours(diffFrame);
 				if (array.size() > 0) {
-					// //////////////////////////////////////////////////////////////////
 					tracker.update(array, imag);
-					for (int k = 0; k < tracker.tracks.size(); k++) {
-						int traceNum = tracker.tracks.get(k).trace.size();
-						if (traceNum > 1) {
-							for (int jt = 1; jt < tracker.tracks.get(k).trace
-									.size(); jt++) {
-								Imgproc.line(
-										imag,
-										tracker.tracks.get(k).trace.get(jt - 1),
-										tracker.tracks.get(k).trace.get(jt),
-										Colors[tracker.tracks.get(k).track_id % 9],
-										2, 4, 0);	
-								Imgproc.line(
-										kalman,
-										tracker.tracks.get(k).trace.get(jt - 1),
-										tracker.tracks.get(k).trace.get(jt),
-										Colors[tracker.tracks.get(k).track_id % 9],
-										2, 4, 0);	
-							}
-							
-							Imgproc.putText(imag, "K",
-									tracker.tracks.get(k).trace
-											.get(tracker.tracks.get(k).trace
-													.size()-1),
-									Core.FONT_HERSHEY_PLAIN, 1, new Scalar(255,
-											255, 255), 1);
+					Iterator<Rect> it3 = array.iterator();
+					while (it3.hasNext()) {
+						Rect obj = it3.next();
+						
+						int ObjectCenterX = (int) ((obj.tl().x + obj.br().x) / 2);
+						int ObjectCenterY = (int) ((obj.tl().y + obj.br().y) / 2);
 
-//							for (int op = 1; op < tracker.tracks.get(k).history
-//									.size(); op++) {
-//								Imgproc.line(imag,
-//										tracker.tracks.get(k).history
-//												.get(op - 1), tracker.tracks
-//												.get(k).history.get(op),
-//										Colors[2], 1, Imgproc.LINE_AA, 0);
-//							}
-						}
+						Point pt = new Point(ObjectCenterX, ObjectCenterY);
+						
+						Imgproc.rectangle(imag, obj.br(), obj.tl(), new Scalar(
+								0, 255, 0), 2);
+						Imgproc.circle(imag, pt, 1, new Scalar(0, 0, 255), 2);				
 					}
 
 				}
-
+				tracker.predictKalman(imag, array);
+				for (int k = 0; k < tracker.tracks.size(); k++) {
+					int traceNum = tracker.tracks.get(k).trace.size();
+					if (traceNum > 1) {
+						for (int jt = 1; jt < tracker.tracks.get(k).trace
+								.size(); jt++) {
+							Imgproc.line(imag,
+									tracker.tracks.get(k).trace.get(jt - 1),
+									tracker.tracks.get(k).trace.get(jt),
+									Colors[tracker.tracks.get(k).track_id % 9],
+									2, 4, 0);
+						}
+					}
+				}
+				
 				Imgproc.putText(imag, "Input: " + filename, new Point(20, 360),
 						Core.FONT_HERSHEY_PLAIN, 1, new Scalar(255, 255, 255),
 						1);
@@ -229,13 +219,16 @@ public class Main {
 			Mat mFGMask, BackgroundSubtractorMOG2 mBGSub) {
 		// capture.retrieve(mRgba, Imgproc.COLOR_BGR2RGB);
 		// GREY_FRAME also works and exhibits better performance
-		mBGSub.apply(mRgba, mFGMask, 0.01);
+		mBGSub.apply(mRgba, mFGMask, 0.001);
 		Imgproc.cvtColor(mFGMask, mRgba, Imgproc.COLOR_GRAY2BGRA, 0);
 		Mat openElem = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
 				new Size(3, 3), new Point(1, 1));
 		Mat closeElem = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
 				new Size(7, 7), new Point(3, 3));
-
+		
+		Imgproc.threshold(mFGMask, mFGMask, 127, 255,
+				Imgproc.THRESH_BINARY);
+		
 		Imgproc.morphologyEx(mFGMask, mFGMask, Imgproc.MORPH_OPEN, openElem);
 		Imgproc.morphologyEx(mFGMask, mFGMask, Imgproc.MORPH_CLOSE, closeElem);
 	}
