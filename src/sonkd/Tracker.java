@@ -1,6 +1,5 @@
 package sonkd;
 
-import java.util.Iterator;
 import java.util.Vector;
 
 import org.opencv.core.Core;
@@ -18,6 +17,7 @@ import org.opencv.imgproc.Imgproc;
 
 public class Tracker extends JTracker {
 	int nextTractID = 0;
+	Vector<Integer> assignment = new Vector<>();
 
 	public Tracker(float _dt, float _Accel_noise_mag, double _dist_thres,
 			int _maximum_allowed_skipped_frames, int _max_trace_length) {
@@ -41,20 +41,7 @@ public class Tracker extends JTracker {
 		return Math.sqrt(diff.x * diff.x + diff.y * diff.y);
 	}
 
-	public void update(Vector<Rect> rectArray, Mat imag) {	
-		Vector<Point> detections = new Vector<>();
-		//detections.clear();
-		Iterator<Rect> it3 = rectArray.iterator();
-		while (it3.hasNext()) {
-			Rect obj = it3.next();
-			
-			int ObjectCenterX = (int) ((obj.tl().x + obj.br().x) / 2);
-			int ObjectCenterY = (int) ((obj.tl().y + obj.br().y) / 2);
-
-			Point pt = new Point(ObjectCenterX, ObjectCenterY);
-			detections.add(pt);					
-		}
-		
+	public void update(Vector<Rect> rectArray, Vector<Point> detections, Mat imag) {			
 		if (tracks.size() == 0) {
 			// If no tracks yet
 			for (int i = 0; i < detections.size(); i++) {
@@ -72,7 +59,8 @@ public class Tracker extends JTracker {
 
 		// Cost matrix.
 		double[][] Cost = new double[N][M]; // size: N, M
-		Vector<Integer> assignment = new Vector<>(); // assignment according to Hungarian algorithm
+		// Vector<Integer> assignment = new Vector<>(); // assignment according to Hungarian algorithm
+		assignment.clear();
 		// -----------------------------------
 		// Caculate cost matrix (distances)
 		// -----------------------------------
@@ -113,6 +101,7 @@ public class Tracker extends JTracker {
 				// If track have no assigned detect, then increment skipped
 				// frames counter.
 				tracks.get(i).skipped_frames++;
+				//not_assigned_tracks.add(i);
 			}
 		}
 		
@@ -151,7 +140,7 @@ public class Tracker extends JTracker {
 		}
 		
 		// Update Kalman Filters state
-		updateKalman(imag, assignment, detections);
+		updateKalman(imag,detections);
 				
 		for (int j = 0; j < assignment.size(); j++) {
 			if (assignment.get(j) != -1) {
@@ -177,12 +166,15 @@ public class Tracker extends JTracker {
 		}
 	}
 	
-	public void updateKalman(Mat imag, Vector<Integer> assignment, Vector<Point> detections) {
+	public void updateKalman(Mat imag, Vector<Point> detections) {
 		// Update Kalman Filters state
+		if(detections.size()==0)
+			for(int i = 0; i < assignment.size(); i++)
+				assignment.set(i, -1);
 		for (int i = 0; i < assignment.size(); i++) {
 			// If track updated less than one time, than filter state is not
 			// correct.
-			tracks.get(i).KF.getPrediction();
+			tracks.get(i).prediction=tracks.get(i).KF.getPrediction();
 
 			if (assignment.get(i) != -1) // If we have assigned detect, then
 											// update using its coordinates,
@@ -208,20 +200,4 @@ public class Tracker extends JTracker {
 			// Core.FONT_HERSHEY_PLAIN, 2, new Scalar(255, 255, 255), 1);
 		}
 	}
-	
-	public void predictKalman(Mat imag, Vector<Rect> detections){
-		if (detections.size() == 0)
-			for (int i = 0; i < tracks.size(); i++) {
-				tracks.get(i).prediction = tracks.get(i).KF.update(
-						tracks.get(i).trace.lastElement(), true);
-				System.out.println("predicted: "+ tracks.get(i).prediction.x+" "+tracks.get(i).prediction.y);
-				
-				tracks.get(i).trace.add(tracks.get(i).prediction);
-
-				tracks.get(i).KF.setLastResult(tracks.get(i).prediction);
-				Imgproc.circle(imag, tracks.get(i).prediction, 5, new Scalar(0,
-						0, 255), 2);
-			}
-	}
-
 }

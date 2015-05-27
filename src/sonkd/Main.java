@@ -50,12 +50,19 @@ public class Main {
 
 	final static int FRAME_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().width / 2;
 	final static int FRAME_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().height / 2;
-	final static double MIN_BLOB_AREA = 500;
+	final static double MIN_BLOB_AREA = 250;
+	final static double MAX_BLOB_AREA = 3000;
 
-	//static String filename = "H:/VIDEO/Footage/Crowd_PETS09/S2/L2/Time_14-55/View_001/frame_%04d.jpg");
-	static String filename = "H:/VIDEO/Footage/Project Final/cat-moving.mp4";
-	//static String filename = "atrium.avi";
-	
+	// static String filename =
+	// "H:/VIDEO/Footage/Crowd_PETS09/S2/L2/Time_14-55/View_001/frame_%04d.jpg");
+	// static String filename = "H:/VIDEO/Footage/Project Final/768x576.avi";
+	// static String filename = "H:/VIDEO/Footage/Project Final/MatchSoccer.wmv";
+	// static String filename = "H:/VIDEO/Footage/Project Final/SingleTracking.mp4";
+	static String filename = "H:/VIDEO/Footage/Project Final/SingleDataSet.mp4";
+	// static String filename = "H:/VIDEO/Footage/Project Final/FroggerHighway.mp4";
+	// static String filename = "H:/VIDEO/Footage/Project Final/street.mov";
+	// static String filename = "atrium.avi";
+
 	static Mat imag = null;
 	static Mat orgin = null;
 	static Mat kalman = null;
@@ -116,7 +123,7 @@ public class Main {
 		BackgroundSubtractorMOG2 mBGSub = Video
 				.createBackgroundSubtractorMOG2();
 
-		tracker = new Tracker((float) 0.2, (float) 0.5, 160.0, 10, 10);
+		tracker = new Tracker((float) 0.2, (float) 0.5, 360.0, 10, 10);
 
 		// Thread.sleep(1000);
 		VideoCapture camera = new VideoCapture();
@@ -149,24 +156,40 @@ public class Main {
 				frame = diffFrame.clone();
 
 				array = detectionContours(diffFrame);
+				// ///////
+				Vector<Point> detections = new Vector<>();
+				// detections.clear();
+				Iterator<Rect> it = array.iterator();
+				while (it.hasNext()) {
+					Rect obj = it.next();
+
+					int ObjectCenterX = (int) ((obj.tl().x + obj.br().x) / 2);
+					int ObjectCenterY = (int) ((obj.tl().y + obj.br().y) / 2);
+
+					Point pt = new Point(ObjectCenterX, ObjectCenterY);
+					detections.add(pt);
+				}
+				// ///////
+
 				if (array.size() > 0) {
-					tracker.update(array, imag);
+					tracker.update(array, detections, imag);
 					Iterator<Rect> it3 = array.iterator();
 					while (it3.hasNext()) {
 						Rect obj = it3.next();
-						
+
 						int ObjectCenterX = (int) ((obj.tl().x + obj.br().x) / 2);
 						int ObjectCenterY = (int) ((obj.tl().y + obj.br().y) / 2);
 
 						Point pt = new Point(ObjectCenterX, ObjectCenterY);
-						
+
 						Imgproc.rectangle(imag, obj.br(), obj.tl(), new Scalar(
 								0, 255, 0), 2);
-						Imgproc.circle(imag, pt, 1, new Scalar(0, 0, 255), 2);				
+						Imgproc.circle(imag, pt, 1, new Scalar(0, 0, 255), 2);
 					}
-
+				} else if (array.size() == 0) {
+					tracker.updateKalman(imag, detections);
 				}
-				tracker.predictKalman(imag, array);
+
 				for (int k = 0; k < tracker.tracks.size(); k++) {
 					int traceNum = tracker.tracks.get(k).trace.size();
 					if (traceNum > 1) {
@@ -180,7 +203,7 @@ public class Main {
 						}
 					}
 				}
-				
+
 				Imgproc.putText(imag, "Input: " + filename, new Point(20, 360),
 						Core.FONT_HERSHEY_PLAIN, 1, new Scalar(255, 255, 255),
 						1);
@@ -217,18 +240,22 @@ public class Main {
 	// background substractionMOG2
 	protected static void processFrame(VideoCapture capture, Mat mRgba,
 			Mat mFGMask, BackgroundSubtractorMOG2 mBGSub) {
-		// capture.retrieve(mRgba, Imgproc.COLOR_BGR2RGB);
 		// GREY_FRAME also works and exhibits better performance
-		mBGSub.apply(mRgba, mFGMask, 0.001);
+		mBGSub.apply(mRgba, mFGMask, 0.005);
 		Imgproc.cvtColor(mFGMask, mRgba, Imgproc.COLOR_GRAY2BGRA, 0);
+		Mat erode = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(
+				8, 8));
+		Mat dilate = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
+				new Size(8, 8));
+
 		Mat openElem = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
 				new Size(3, 3), new Point(1, 1));
 		Mat closeElem = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
 				new Size(7, 7), new Point(3, 3));
-		
-		Imgproc.threshold(mFGMask, mFGMask, 127, 255,
-				Imgproc.THRESH_BINARY);
-		
+
+		Imgproc.threshold(mFGMask, mFGMask, 127, 255, Imgproc.THRESH_BINARY);
+		Imgproc.morphologyEx(mFGMask, mFGMask, Imgproc.MORPH_OPEN, erode);
+		Imgproc.morphologyEx(mFGMask, mFGMask, Imgproc.MORPH_OPEN, dilate);
 		Imgproc.morphologyEx(mFGMask, mFGMask, Imgproc.MORPH_OPEN, openElem);
 		Imgproc.morphologyEx(mFGMask, mFGMask, Imgproc.MORPH_CLOSE, closeElem);
 	}
@@ -262,7 +289,7 @@ public class Main {
 		for (int idx = 0; idx < contours.size(); idx++) {
 			Mat contour = contours.get(idx);
 			double contourarea = Imgproc.contourArea(contour);
-			if (contourarea > MIN_BLOB_AREA) {
+			if (contourarea > MIN_BLOB_AREA && contourarea < MAX_BLOB_AREA) {
 				// MIN_BLOB_AREA = contourarea;
 				maxAreaIdx = idx;
 				r = Imgproc.boundingRect(contours.get(maxAreaIdx));

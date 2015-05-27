@@ -3,6 +3,7 @@ package sonkd;
 import java.util.Vector;
 
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 
 /**
@@ -27,6 +28,6 @@ public abstract class JTracker {
 	
 	public int track_removed;
 
-	public abstract void update(Vector<Rect> detections, Mat imag);
+	public abstract void update(Vector<Rect> RectArrays, Vector<Point> detections, Mat imag);
 
 }
