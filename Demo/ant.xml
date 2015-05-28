@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project Moving-Target-Tracking-with-OpenCV with Jar-in-Jar Loader">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="H:/Documents/KHMT/Ki 10 - Do An Tot Nghiep/Do An/CD/Demo/build.jar">
+            <manifest>
+                <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
+                <attribute name="Rsrc-Main-Class" value="sonkd.Main"/>
+                <attribute name="Class-Path" value="."/>
+                <attribute name="Rsrc-Class-Path" value="./ opencv-300.jar junit.jar"/>
+            </manifest>
+            <zipfileset src="jar-in-jar-loader.zip"/>
+            <fileset dir="H:/SUNNET/Projects/Moving-Target-Tracking-with-OpenCV/bin"/>
+            <zipfileset dir="G:\Soft\Developer\opencv\build\java" includes="opencv-300.jar"/>
+            <zipfileset dir="G:\Soft\Developer\Eclipse\eclipse\plugins\org.junit_4.11.0.v201303080030" includes="junit.jar"/>
+        </jar>
+    </target>
+</project>

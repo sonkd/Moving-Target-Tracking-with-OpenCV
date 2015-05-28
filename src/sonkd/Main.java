@@ -3,6 +3,7 @@ package sonkd;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.Console;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class Main {
 	// static String filename = "H:/VIDEO/Footage/Project Final/768x576.avi";
 	// static String filename = "H:/VIDEO/Footage/Project Final/MatchSoccer.wmv";
 	// static String filename = "H:/VIDEO/Footage/Project Final/SingleTracking.mp4";
-	static String filename = "H:/VIDEO/Footage/Project Final/SingleDataSet.mp4";
+	static String filename = "data.mp4";
 	// static String filename = "H:/VIDEO/Footage/Project Final/FroggerHighway.mp4";
 	// static String filename = "H:/VIDEO/Footage/Project Final/street.mov";
 	// static String filename = "atrium.avi";
@@ -69,6 +70,11 @@ public class Main {
 	public static Tracker tracker;
 
 	public static void main(String[] args) throws InterruptedException {
+		
+		if (args.length>0){
+			filename = args[0];
+		}
+		
 		JFrame jFrame = new JFrame("MULTIPLE-TARGET TRACKING");
 		jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JLabel vidpanel = new JLabel();
