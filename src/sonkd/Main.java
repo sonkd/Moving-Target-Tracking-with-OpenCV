@@ -3,7 +3,6 @@ package sonkd;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.Console;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -43,27 +42,6 @@ public class Main {
 		// System.loadLibrary("opencv_java2410");
 	}
 
-	static Scalar Colors[] = { new Scalar(255, 0, 0), new Scalar(0, 255, 0),
-			new Scalar(0, 0, 255), new Scalar(255, 255, 0),
-			new Scalar(0, 255, 255), new Scalar(255, 0, 255),
-			new Scalar(255, 127, 255), new Scalar(127, 0, 255),
-			new Scalar(127, 0, 127) };
-
-	final static int FRAME_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().width / 2;
-	final static int FRAME_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().height / 2;
-	final static double MIN_BLOB_AREA = 250;
-	final static double MAX_BLOB_AREA = 3000;
-
-	// static String filename =
-	// "H:/VIDEO/Footage/Crowd_PETS09/S2/L2/Time_14-55/View_001/frame_%04d.jpg");
-	// static String filename = "H:/VIDEO/Footage/Project Final/768x576.avi";
-	// static String filename = "H:/VIDEO/Footage/Project Final/MatchSoccer.wmv";
-	// static String filename = "H:/VIDEO/Footage/Project Final/SingleTracking.mp4";
-	static String filename = "data.mp4";
-	// static String filename = "H:/VIDEO/Footage/Project Final/FroggerHighway.mp4";
-	// static String filename = "H:/VIDEO/Footage/Project Final/street.mov";
-	// static String filename = "atrium.avi";
-
 	static Mat imag = null;
 	static Mat orgin = null;
 	static Mat kalman = null;
@@ -72,14 +50,14 @@ public class Main {
 	public static void main(String[] args) throws InterruptedException {
 		
 		if (args.length>0){
-			filename = args[0];
+			CONFIG.filename = args[0];
 		}
 		
 		JFrame jFrame = new JFrame("MULTIPLE-TARGET TRACKING");
 		jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JLabel vidpanel = new JLabel();
 		jFrame.setContentPane(vidpanel);
-		jFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+		jFrame.setSize(CONFIG.FRAME_WIDTH, CONFIG.FRAME_HEIGHT);
 		jFrame.setLocation((3 / 4)
 				* Toolkit.getDefaultToolkit().getScreenSize().width, (3 / 4)
 				* Toolkit.getDefaultToolkit().getScreenSize().height);
@@ -90,7 +68,7 @@ public class Main {
 		jFrame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JLabel vidpanel2 = new JLabel();
 		jFrame2.setContentPane(vidpanel2);
-		jFrame2.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+		jFrame2.setSize(CONFIG.FRAME_WIDTH, CONFIG.FRAME_HEIGHT);
 		jFrame2.setLocation(
 				Toolkit.getDefaultToolkit().getScreenSize().width / 2, (3 / 4)
 						* Toolkit.getDefaultToolkit().getScreenSize().height);
@@ -102,7 +80,7 @@ public class Main {
 		jFrame3.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JLabel vidpanel3 = new JLabel();
 		jFrame3.setContentPane(vidpanel3);
-		jFrame3.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+		jFrame3.setSize(CONFIG.FRAME_WIDTH, CONFIG.FRAME_HEIGHT);
 		jFrame3.setLocation((3 / 4)
 				* Toolkit.getDefaultToolkit().getScreenSize().width, Toolkit
 				.getDefaultToolkit().getScreenSize().height / 2);
@@ -114,7 +92,7 @@ public class Main {
 		jFrame4.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JLabel vidpanel4 = new JLabel();
 		jFrame4.setContentPane(vidpanel4);
-		jFrame4.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+		jFrame4.setSize(CONFIG.FRAME_WIDTH, CONFIG.FRAME_HEIGHT);
 		jFrame4.setLocation(
 				Toolkit.getDefaultToolkit().getScreenSize().width / 2, Toolkit
 						.getDefaultToolkit().getScreenSize().height / 2);
@@ -129,11 +107,14 @@ public class Main {
 		BackgroundSubtractorMOG2 mBGSub = Video
 				.createBackgroundSubtractorMOG2();
 
-		tracker = new Tracker((float) 0.2, (float) 0.5, 360.0, 10, 10);
+		tracker = new Tracker((float) CONFIG._dt,
+				(float) CONFIG._Accel_noise_mag, CONFIG._dist_thres,
+				CONFIG._maximum_allowed_skipped_frames,
+				CONFIG._max_trace_length);
 
 		// Thread.sleep(1000);
 		VideoCapture camera = new VideoCapture();
-		camera.open(filename);
+		camera.open(CONFIG.filename);
 		// VideoCapture camera = new VideoCapture(0);
 		int i = 0;
 
@@ -145,7 +126,7 @@ public class Main {
 		while (true) {
 			if (!camera.read(frame))
 				break;
-			Imgproc.resize(frame, frame, new Size(FRAME_WIDTH, FRAME_HEIGHT),
+			Imgproc.resize(frame, frame, new Size(CONFIG.FRAME_WIDTH, CONFIG.FRAME_HEIGHT),
 					0., 0., Imgproc.INTER_LINEAR);
 			imag = frame.clone();
 			orgin = frame.clone();
@@ -204,13 +185,13 @@ public class Main {
 							Imgproc.line(imag,
 									tracker.tracks.get(k).trace.get(jt - 1),
 									tracker.tracks.get(k).trace.get(jt),
-									Colors[tracker.tracks.get(k).track_id % 9],
+									CONFIG.Colors[tracker.tracks.get(k).track_id % 9],
 									2, 4, 0);
 						}
 					}
 				}
 
-				Imgproc.putText(imag, "Input: " + filename, new Point(20, 360),
+				Imgproc.putText(imag, "Input: " + CONFIG.filename, new Point(20, 360),
 						Core.FONT_HERSHEY_PLAIN, 1, new Scalar(255, 255, 255),
 						1);
 				Imgproc.putText(imag,
@@ -247,7 +228,7 @@ public class Main {
 	protected static void processFrame(VideoCapture capture, Mat mRgba,
 			Mat mFGMask, BackgroundSubtractorMOG2 mBGSub) {
 		// GREY_FRAME also works and exhibits better performance
-		mBGSub.apply(mRgba, mFGMask, 0.005);
+		mBGSub.apply(mRgba, mFGMask, CONFIG.learningRate);
 		Imgproc.cvtColor(mFGMask, mRgba, Imgproc.COLOR_GRAY2BGRA, 0);
 		Mat erode = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(
 				8, 8));
@@ -295,7 +276,7 @@ public class Main {
 		for (int idx = 0; idx < contours.size(); idx++) {
 			Mat contour = contours.get(idx);
 			double contourarea = Imgproc.contourArea(contour);
-			if (contourarea > MIN_BLOB_AREA && contourarea < MAX_BLOB_AREA) {
+			if (contourarea > CONFIG.MIN_BLOB_AREA && contourarea < CONFIG.MAX_BLOB_AREA) {
 				// MIN_BLOB_AREA = contourarea;
 				maxAreaIdx = idx;
 				r = Imgproc.boundingRect(contours.get(maxAreaIdx));
